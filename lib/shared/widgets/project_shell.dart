@@ -18,18 +18,22 @@ class ProjectShell extends StatelessWidget {
     appBar: AppBar(title: const Text('Reportes ciudadanos · El Alto')),
     body: Column(
       children: [
-        const MaterialBanner(
-          content: Text(
-            'Prototipo local en construcción. Los reportes se guardarán en este teléfono.',
+        if (MediaQuery.viewInsetsOf(context).bottom == 0)
+          const MaterialBanner(
+            content: Text(
+              'Prototipo local en construcción. Los reportes se guardarán en este teléfono.',
+            ),
+            actions: [SizedBox.shrink()],
           ),
-          actions: [SizedBox.shrink()],
-        ),
         Expanded(child: child),
       ],
     ),
     bottomNavigationBar: NavigationBar(
       selectedIndex: paths.indexOf(path),
-      onDestinationSelected: (index) => context.go(paths[index]),
+      onDestinationSelected: (index) {
+        FocusManager.instance.primaryFocus?.unfocus();
+        context.go(paths[index]);
+      },
       destinations: const [
         NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
         NavigationDestination(icon: Icon(Icons.list_alt), label: 'Reportes'),

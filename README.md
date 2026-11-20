@@ -8,14 +8,21 @@ Base Flutter Android de un MVP con SQLite privado. Repositorio:
 Incluye proyecto Android, tema, cinco rutas navegables y persistencia SQLite:
 repositorios de categorías y reportes, CRUD con eliminación lógica, permisos,
 auditoría y versiones privadas. La base migra de v1 a v2 conservando los datos.
-La pestaña Reportes muestra las ocho categorías leídas desde SQLite.
+La pestaña Reportes muestra tarjetas con foto principal, categoría, ubicación,
+estado y antigüedad. Permite buscar en título/descripción y filtrar por categoría,
+estado y fechas de creación, con orden reciente/antiguo. Los mismos filtros se
+conservan al cambiar al mapa. El catálogo está en «Ver categorías».
 
 La pestaña Mapa incorpora OpenStreetMap centrado en El Alto, marcadores de los
-reportes locales por categoría/estado y resumen al pulsarlos. «Elegir ubicación»
+reportes locales por categoría/estado y acceso al detalle al pulsarlos. «Elegir ubicación»
 abre el selector: toque para colocar/corregir el pin, coordenadas manuales y GPS
 opcional. El punto se devuelve al mapa; todavía no crea ni guarda un reporte.
 
-Todavía no incluye las pantallas de listado/alta de reportes, acceso con Google,
+El detalle incluye autor público o anónimo, galería ampliable, mapa, fechas,
+tiempos e historial con propuestas. Si falta una foto, muestra un aviso y permite
+reintentar. Los reportes eliminados no se muestran en lista, mapa ni detalle.
+
+Todavía no incluye el formulario de alta, acceso con Google,
 captura de fotos, revisión administrativa ni estadísticas. El CRUD se encuentra
 en la capa de datos y se verifica mediante pruebas. No contiene usuarios ni
 credenciales de demostración que aparenten autenticación real.

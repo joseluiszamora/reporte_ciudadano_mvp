@@ -1,5 +1,6 @@
 import '../../../core/location/geo_point.dart';
 import '../../reports/domain/report_policy.dart';
+import '../../reports/domain/report_filter.dart';
 
 class MapReport {
   const MapReport({
@@ -21,5 +22,7 @@ class MapReport {
 }
 
 abstract interface class MapReportRepository {
-  Stream<List<MapReport>> watchMarkers();
+  Stream<List<MapReport>> watchMarkers({
+    ReportFilter filter = const ReportFilter(),
+  });
 }

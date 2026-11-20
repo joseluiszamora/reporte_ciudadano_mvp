@@ -223,7 +223,8 @@ class _MapCanvasState extends State<MapCanvas> {
                 child: Material(
                   elevation: 2,
                   borderRadius: BorderRadius.circular(12),
-                  child: Column(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         tooltip: 'Acercar mapa',

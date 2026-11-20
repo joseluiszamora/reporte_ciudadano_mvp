@@ -13,7 +13,7 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 |---|---|---|---|
 | auth | AppUser, AuthRepository | LocalUserStore; Firebase/Google pendiente | Login y nombre público |
 | categories | CategoryRepository | SqliteCategoryRepository | Catálogo local implementado; selector en formulario pendiente |
-| reports | ReportPolicy, ReportRepository, ResolutionRepository | ReportDao + SqliteReportRepository; revisión de soluciones pendiente | Lista, detalle, alta, administración pendientes |
+| reports | ReportPolicy, ReportRepository, ReportReadRepository, ResolutionRepository | ReportDao, ReportQueryDao, repositorios SQLite | Lista y detalle implementados; alta y administración pendientes |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
 | statistics | Cálculos y filtros pendientes | Consultas SQLite | Indicadores locales |
 | profile | Usuario autenticado | AuthRepository | Nombre y mis reportes |
@@ -84,7 +84,32 @@ reintentar recreando la capa, sin eliminar la selección ni bloquear coordenadas
 Los tests inyectan proveedor de teselas y ubicación para evitar tráfico real y
 diálogos de sistema. Los marcadores se consultan reactivamente desde SQLite,
 excluyen eliminación lógica y no incluyen UID/correo. El detalle completo y los
-filtros compartidos con listado corresponden a TASK-004.
+filtros compartidos con listado están implementados en TASK-004.
+
+## Consulta de reportes (TASK-004)
+
+`ReportFilterCubit` pertenece a la aplicación y conserva búsqueda, categoría,
+estado, fechas y orden al cambiar entre mapa y lista o volver del detalle.
+Se restablece al reiniciar la aplicación; no modifica los reportes.
+`ReportQueryDao` es la consulta compartida para ambas vistas. Aplica eliminación
+lógica, categoría, estado y fechas mediante parámetros SQL, con orden estable
+por creación e identificador. La búsqueda literal en título/descripción usa
+minúsculas Unicode de Dart para cubrir mayúsculas españolas; no elimina tildes.
+Al tratarse de un MVP local, busca en memoria sobre las filas filtradas; una base
+grande requerirá índices de búsqueda y paginación antes de centralizar datos.
+
+Las fechas de UI son días locales: inicio inclusivo y medianoche del día siguiente
+al final como límite exclusivo, convertidos a UTC. Se usa calendario en español.
+`SqliteReportReadRepository` publica tarjetas y detalle con historial/propuestas
+sin exponer UID, correo ni identidad interna de actores. El detalle deja de estar
+disponible si se elimina el reporte. Los tiempos se actualizan cada minuto mientras
+la vista está abierta y se acotan a cero si el reloj retrocede.
+
+`PrivatePhotoReader` abre rutas relativas a `getApplicationDocumentsDirectory()`;
+rechaza rutas externas y enlaces que salgan del directorio privado. La futura
+importación de TASK-006 debe usar esa misma raíz y guardar rutas como `photos/UUID.jpg`.
+`ReportPhoto` permite ampliar con zoom y muestra recuperación si falta el archivo
+o no se puede decodificar. No muestra rutas internas ni borra datos al fallar.
 
 Referencia: [política oficial de teselas OSM](https://operations.osmfoundation.org/policies/tiles/).
 Seleccionar proveedor para despliegue masivo antes de lanzamiento público.

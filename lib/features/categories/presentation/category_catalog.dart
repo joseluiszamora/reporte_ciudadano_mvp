@@ -30,10 +30,10 @@ class CategoryCatalog extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Reportes', style: Theme.of(context).textTheme.headlineSmall),
+          Text('Categorías', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           const Text(
-            'Consulta las categorías de problemas urbanos disponibles en este teléfono. La creación y consulta de reportes estarán disponibles en una próxima versión.',
+            'Catálogo local de problemas urbanos disponibles en este teléfono.',
           ),
           const SizedBox(height: 24),
           Text(

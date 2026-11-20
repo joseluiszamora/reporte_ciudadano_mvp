@@ -10,6 +10,10 @@ import 'location_cubit.dart';
 import 'location_picker_page.dart';
 import 'map_canvas.dart';
 import 'map_tiles.dart';
+import '../../categories/domain/category_repository.dart';
+import '../../reports/domain/report_filter.dart';
+import '../../reports/presentation/report_filter_cubit.dart';
+import '../../reports/presentation/report_filter_bar.dart';
 
 class CityMapPage extends StatefulWidget {
   const CityMapPage({
@@ -17,20 +21,37 @@ class CityMapPage extends StatefulWidget {
     required this.reports,
     required this.location,
     this.tiles = MapTiles.create,
+    this.filters,
+    this.categories,
+    this.onOpenReport,
   });
   final MapReportRepository reports;
   final LocationGateway location;
   final TileProviderFactory tiles;
+  final ReportFilterCubit? filters;
+  final CategoryRepository? categories;
+  final ValueChanged<String>? onOpenReport;
   @override
   State<CityMapPage> createState() => _CityMapPageState();
 }
 
 class _CityMapPageState extends State<CityMapPage> {
   late final cubit = LocationCubit(widget.location);
-  late final markers = widget.reports.watchMarkers();
+  late final filters = widget.filters ?? ReportFilterCubit();
+  ReportFilter? active;
+  late Stream<List<MapReport>> markers;
+  Stream<List<MapReport>> source(ReportFilter filter) {
+    if (!identical(active, filter)) {
+      active = filter;
+      markers = widget.reports.watchMarkers(filter: filter);
+    }
+    return markers;
+  }
+
   @override
   void dispose() {
     cubit.close();
+    if (widget.filters == null) filters.close();
     super.dispose();
   }
 
@@ -49,6 +70,10 @@ class _CityMapPageState extends State<CityMapPage> {
   }
 
   void showReport(MapReport report) {
+    if (widget.onOpenReport != null) {
+      widget.onOpenReport!(report.id);
+      return;
+    }
     final status = switch (report.status) {
       ReportStatus.reported => 'Reportado',
       ReportStatus.inFollowUp => 'En seguimiento',
@@ -87,57 +112,60 @@ class _CityMapPageState extends State<CityMapPage> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      BlocBuilder<LocationCubit, LocationState>(
-        bloc: cubit,
-        builder: (context, location) => StreamBuilder<List<MapReport>>(
-          stream: markers,
-          builder: (context, snapshot) => Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Mapa de El Alto',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
+  Widget build(
+    BuildContext context,
+  ) => BlocBuilder<ReportFilterCubit, ReportFilter>(
+    bloc: filters,
+    builder: (context, filter) => BlocBuilder<LocationCubit, LocationState>(
+      bloc: cubit,
+      builder: (context, location) => StreamBuilder<List<MapReport>>(
+        stream: source(filter),
+        builder: (context, snapshot) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Mapa de El Alto',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    TextButton.icon(
-                      onPressed: choosePoint,
-                      icon: const Icon(Icons.add_location_alt_outlined),
-                      label: const Text('Elegir ubicación'),
-                    ),
-                  ],
-                ),
-              ),
-              if (snapshot.hasError)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'No se pudieron cargar los reportes locales. Vuelve a entrar al mapa para reintentar.',
                   ),
-                ),
-              if (snapshot.hasData && snapshot.data!.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('Aún no hay reportes locales en el mapa.'),
-                ),
-              Expanded(
-                flex: 3,
-                child: MapCanvas(
-                  focus: location.point,
-                  focusRevision: location.focusRevision,
-                  selected: location.point,
-                  reports: snapshot.data ?? const [],
-                  onReportTap: showReport,
-                  tiles: widget.tiles,
+                  TextButton.icon(
+                    onPressed: choosePoint,
+                    icon: const Icon(Icons.add_location_alt_outlined),
+                    label: const Text('Elegir ubicación'),
+                  ),
+                ],
+              ),
+            ),
+            if (widget.categories != null)
+              ReportFilterBar(filters: filters, categories: widget.categories!),
+            if (snapshot.hasError)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'No se pudieron cargar los reportes locales. Vuelve a entrar al mapa para reintentar.',
                 ),
               ),
+            if (snapshot.hasData && snapshot.data!.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text('Aún no hay reportes locales en el mapa.'),
+              ),
+            Expanded(
+              flex: 3,
+              child: MapCanvas(
+                focus: location.point,
+                focusRevision: location.focusRevision,
+                selected: location.point,
+                reports: snapshot.data ?? const [],
+                onReportTap: showReport,
+                tiles: widget.tiles,
+              ),
+            ),
+            if (View.of(context).viewInsets.bottom == 0)
               Flexible(
                 flex:
                     location.error != null ||
@@ -149,8 +177,9 @@ class _CityMapPageState extends State<CityMapPage> {
                   child: LocationControls(cubit: cubit, state: location),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

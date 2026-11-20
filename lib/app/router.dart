@@ -3,7 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../shared/widgets/project_shell.dart';
 import '../features/categories/domain/category_repository.dart';
-import '../features/categories/presentation/category_catalog.dart';
+import '../core/media/local_photo_reader.dart';
+import '../features/reports/domain/report_read_repository.dart';
+import '../features/reports/presentation/report_filter_cubit.dart';
+import '../features/reports/presentation/report_list_page.dart';
+import '../features/reports/presentation/report_detail_page.dart';
 import '../core/location/location_gateway.dart';
 import '../features/map/domain/map_report_repository.dart';
 import '../features/map/presentation/city_map_page.dart';
@@ -13,6 +17,9 @@ GoRouter createAppRouter(
   CategoryRepository categories,
   MapReportRepository reports,
   LocationGateway location, {
+  required ReportReadRepository readReports,
+  required ReportFilterCubit filters,
+  required LocalPhotoReader photos,
   TileProviderFactory tiles = MapTiles.create,
 }) {
   return GoRouter(
@@ -24,13 +31,27 @@ GoRouter createAppRouter(
         routes: [
           GoRoute(
             path: '/mapa',
-            builder: (_, _) =>
-                CityMapPage(reports: reports, location: location, tiles: tiles),
+            builder: (context, _) => CityMapPage(
+              reports: reports,
+              location: location,
+              tiles: tiles,
+              filters: filters,
+              categories: categories,
+              onOpenReport: (id) =>
+                  context.push('/reporte/${Uri.encodeComponent(id)}'),
+            ),
           ),
           GoRoute(
             path: '/reportes',
-            builder: (_, _) =>
-                CategoryCatalog(categories: categories.watchCategories()),
+            builder: (context, _) => ReportListPage(
+              repository: readReports,
+              filters: filters,
+              categories: categories,
+              photos: photos,
+              onOpen: (id) =>
+                  context.push('/reporte/${Uri.encodeComponent(id)}'),
+              onCreate: () => context.go('/nuevo'),
+            ),
           ),
           GoRoute(
             path: '/nuevo',
@@ -57,6 +78,15 @@ GoRouter createAppRouter(
             ),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/reporte/:id',
+        builder: (_, state) => ReportDetailPage(
+          id: state.pathParameters['id']!,
+          repository: readReports,
+          photos: photos,
+          tiles: tiles,
+        ),
       ),
     ],
   );

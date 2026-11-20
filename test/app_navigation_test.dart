@@ -24,11 +24,21 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.list_alt));
     await tester.pumpAndSettle();
+    expect(
+      find.text('Todavía no hay reportes en este teléfono.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Ver categorías'));
+    await tester.pumpAndSettle();
     expect(find.text('Categorías disponibles'), findsOneWidget);
     expect(find.text('Baches y daños en las calles'), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.person_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.list_alt));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ver categorías'));
     await tester.pumpAndSettle();
     expect(find.text('Baches y daños en las calles'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());

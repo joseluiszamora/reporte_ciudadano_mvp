@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:reporte_ciudadano_mvp/core/location/geo_point.dart';
 import 'package:reporte_ciudadano_mvp/core/location/location_gateway.dart';
 import 'package:reporte_ciudadano_mvp/features/map/domain/map_report_repository.dart';
+import 'package:reporte_ciudadano_mvp/features/reports/domain/report_filter.dart';
 
 class TestTiles extends TileProvider {
   TestTiles({this.fail = false});
@@ -39,5 +40,7 @@ class TestMapReports implements MapReportRepository {
   TestMapReports([this.markers = const []]);
   final List<MapReport> markers;
   @override
-  Stream<List<MapReport>> watchMarkers() => Stream.value(markers);
+  Stream<List<MapReport>> watchMarkers({
+    ReportFilter filter = const ReportFilter(),
+  }) => Stream.value(markers);
 }
