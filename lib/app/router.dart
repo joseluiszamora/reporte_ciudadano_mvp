@@ -12,6 +12,11 @@ import '../core/location/location_gateway.dart';
 import '../features/map/domain/map_report_repository.dart';
 import '../features/map/presentation/city_map_page.dart';
 import '../features/map/presentation/map_tiles.dart';
+import '../features/auth/presentation/auth_cubit.dart';
+import '../features/auth/presentation/auth_pages.dart';
+import '../features/auth/presentation/auth_route_guard.dart';
+import '../features/profile/domain/my_reports_repository.dart';
+import '../features/profile/presentation/profile_page.dart';
 
 GoRouter createAppRouter(
   CategoryRepository categories,
@@ -20,10 +25,15 @@ GoRouter createAppRouter(
   required ReportReadRepository readReports,
   required ReportFilterCubit filters,
   required LocalPhotoReader photos,
+  required AuthCubit auth,
+  required AuthRouterRefresh authRefresh,
+  required MyReportsRepository myReports,
   TileProviderFactory tiles = MapTiles.create,
 }) {
   return GoRouter(
     initialLocation: '/mapa',
+    refreshListenable: authRefresh,
+    redirect: (_, state) => authRedirect(auth.state, state.uri),
     routes: [
       ShellRoute(
         builder: (context, state, child) =>
@@ -58,7 +68,7 @@ GoRouter createAppRouter(
             builder: (_, _) => const FoundationPage(
               title: 'Crear reporte',
               icon: Icons.add_location_alt_outlined,
-              message: 'Necesitarás iniciar sesión con Google y elegir tu nombre público. Integración pendiente en TASK-005 y TASK-006.',
+              message: 'Tu sesión está lista. El formulario para registrar problemas estará disponible en la próxima versión.',
             ),
           ),
           GoRoute(
@@ -71,11 +81,7 @@ GoRouter createAppRouter(
           ),
           GoRoute(
             path: '/perfil',
-            builder: (_, _) => const FoundationPage(
-              title: 'Mi perfil',
-              icon: Icons.person_outline,
-              message: 'Estás explorando como visitante. El acceso con Google y la elección de nombre se incorporarán en TASK-005.',
-            ),
+            builder: (_, _) => ProfilePage(auth: auth, reports: myReports),
           ),
         ],
       ),
@@ -87,6 +93,14 @@ GoRouter createAppRouter(
           photos: photos,
           tiles: tiles,
         ),
+      ),
+      GoRoute(
+        path: '/acceso',
+        builder: (_, _) => LoginPage(auth: auth),
+      ),
+      GoRoute(
+        path: '/nombre',
+        builder: (_, _) => PublicNamePage(auth: auth),
       ),
     ],
   );

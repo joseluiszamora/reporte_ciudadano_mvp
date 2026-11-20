@@ -5,6 +5,7 @@ import '../domain/report_filter.dart';
 import '../domain/report_read_repository.dart';
 import 'report_dao.dart';
 import 'report_query_dao.dart';
+import 'report_list_mapper.dart';
 
 String publicStatus(String status) => switch (status) {
   'REPORTED' => 'Reportado',
@@ -20,25 +21,7 @@ class SqliteReportReadRepository implements ReportReadRepository {
   Stream<List<ReportListItem>> watchList(ReportFilter filter) =>
       db.watchQuery({'reports', 'categories', 'report_images'}, () async {
         final rows = await ReportQueryDao(db).rows(filter);
-        return List.unmodifiable(
-          rows.map(
-            (row) => ReportListItem(
-              id: row.read<String>('id'),
-              title: row.read<String>('title'),
-              category: row.read<String>('category'),
-              status: statusFromSql(row.read<String>('status')),
-              createdAt: DateTime.parse(row.read<String>('created_at')),
-              isDemo: row.read<int>('is_demo') == 1,
-              latitude: row.read<double>('latitude'),
-              longitude: row.read<double>('longitude'),
-              address: row.readNullable<String>('address_label'),
-              photoPath: row.readNullable<String>('photo_path'),
-              resolvedAt: row.readNullable<String>('resolved_at') == null
-                  ? null
-                  : DateTime.parse(row.read<String>('resolved_at')),
-            ),
-          ),
-        );
+        return List.unmodifiable(rows.map(reportListItem));
       });
 
   @override

@@ -57,7 +57,7 @@ la aplicación; no promete respaldo ni auditoría inviolable.
 
 Registrar LOGIN, LOGOUT, PROFILE_COMPLETED, PROFILE_UPDATED, REPORT_CREATED,
 REPORT_UPDATED, REPORT_DELETED, REPORT_STATUS_CHANGED, PROPOSAL_CREATED,
-PROPOSAL_APPROVED, PROPOSAL_REJECTED y PHOTO_REPLACED. Registrar actor UID,
+PROPOSAL_APPROVED, PROPOSAL_REJECTED, PHOTO_REPLACED y ROLE_REFRESHED. Registrar actor UID,
 rol al actuar, entidad, acción, fecha UTC, motivo, campos cambiados y origen demo.
 Los cambios persistentes y su evento se guardan en una transacción.
 El historial conserva estados antes/después y vínculo a propuesta. No registrar

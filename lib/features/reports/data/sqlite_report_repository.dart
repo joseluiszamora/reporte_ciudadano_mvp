@@ -143,6 +143,7 @@ class SqliteReportRepository implements ReportRepository {
   Future<String> create(ReportDraft draft) => db.transaction(() async {
     final actor = await session.requireCompleteProfile();
     await _validate(draft);
+    session.ensureCurrent(actor);
     final id = const Uuid().v4();
     final now = clock().toUtc();
     await db.customStatement(
@@ -265,6 +266,7 @@ class SqliteReportRepository implements ReportRepository {
       if (!_samePhotos(previousPhotos, draft.photos)) 'photos',
     ];
     if (fields.isEmpty) return;
+    session.ensureCurrent(actor);
     await _saveRevision(reportId, actor, now);
     await db.customStatement(
       '''UPDATE reports SET category_id=?,title=?,description=?,latitude=?,longitude=?,address_label=?,
@@ -371,6 +373,7 @@ class SqliteReportRepository implements ReportRepository {
         }
         _requireReason(reason);
         final now = clock().toUtc();
+        session.ensureCurrent(actor);
         await _saveRevision(reportId, actor, now);
         await db.customStatement(
           '''UPDATE reports SET deleted_at=?,deleted_by_uid=?,deletion_reason=?,updated_at=?,revision=revision+1 WHERE id=?''',

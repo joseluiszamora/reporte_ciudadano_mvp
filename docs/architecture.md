@@ -11,12 +11,12 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 
 | Feature | Dominio | Datos | Presentación pendiente |
 |---|---|---|---|
-| auth | AppUser, AuthRepository | LocalUserStore; Firebase/Google pendiente | Login y nombre público |
+| auth | AppUser, AuthRepository | FirebaseGoogleGateway, GoogleAuthRepository, LocalUserStore | Login y nombre público implementados; falta configurar Firebase |
 | categories | CategoryRepository | SqliteCategoryRepository | Catálogo local implementado; selector en formulario pendiente |
 | reports | ReportPolicy, ReportRepository, ReportReadRepository, ResolutionRepository | ReportDao, ReportQueryDao, repositorios SQLite | Lista y detalle implementados; alta y administración pendientes |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
 | statistics | Cálculos y filtros pendientes | Consultas SQLite | Indicadores locales |
-| profile | Usuario autenticado | AuthRepository | Nombre y mis reportes |
+| profile | Usuario autenticado, MyReportsRepository | AuthRepository, SqliteMyReportsRepository | Nombre, logout y Mis reportes implementados |
 
 ## Persistencia
 
@@ -114,12 +114,35 @@ o no se puede decodificar. No muestra rutas internas ni borra datos al fallar.
 Referencia: [política oficial de teselas OSM](https://operations.osmfoundation.org/policies/tiles/).
 Seleccionar proveedor para despliegue masivo antes de lanzamiento público.
 
-## Autenticación pendiente
+## Autenticación (TASK-005)
 
-No hay credenciales incluidas. Google/Firebase se configura en TASK-005 para
-`bo.elalto.reporte_ciudadano_mvp`, con firmas Android y configuración generada
-para ese proyecto. Instalar entonces los plugins de autenticación. No usar
-el nombre, correo introducido por el usuario o un botón de UI para dar rol admin.
+No hay proyecto Firebase configurado todavía, por confirmación del usuario.
+`FirebaseGoogleGateway` conecta Google Sign-In con Firebase Auth mediante opciones
+explícitas y client ID OAuth web. Sin configuración no inicializa SDK ni permite
+login; se mantiene la lectura como visitante. Ver `docs/firebase-setup.md`.
+
+`GoogleAuthRepository` serializa cambios de identidad, persiste metadatos privados
+y nombre elegido, publica el usuario actual y mantiene el UID de `LocalSession`.
+No almacena tokens en SQLite. Las notificaciones duplicadas del SDK no duplican
+LOGIN; una operación de login pendiente se invalida al cerrar sesión. Se intenta
+limpiar la sesión del SDK aunque falle la auditoría de LOGOUT. La restauración
+usa la identidad persistida del SDK, no la existencia de una fila en `users`.
+
+El rol procede del claim booleano `admin` en el token Firebase. Si los claims no
+se pueden leer por red/timeout no se concede admin. La actualización del rol se
+audita como ROLE_REFRESHED; el nombre público no permite elegir permisos.
+`AuthCubit` evita envíos duplicados y expone errores sin tokens ni detalles del SDK.
+La protección de rutas conserva `/nuevo` durante Google y elección de nombre;
+los destinos de retorno están limitados a rutas internas conocidas. Se puede
+posponer el nombre para explorar, pero no para ejecutar acciones protegidas.
+
+`SqliteMyReportsRepository` filtra por el UID activo dentro de SQL y comprueba que
+la cuenta no cambió durante la consulta. Las escrituras de reportes también
+revalidan la identidad tras la validación asíncrona de fotos.
+
+Google/Firebase debe configurarse para `bo.elalto.reporte_ciudadano_mvp` con sus
+firmas de desarrollo y publicación. No usar nombre, correo introducido por el
+usuario ni un botón de UI para dar rol admin.
 En esta fase local, un administrador gestionará solo los datos de su teléfono.
 La app web futura necesitará API y datos compartidos antes de aprobar reportes
 de otros dispositivos.

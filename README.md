@@ -22,8 +22,13 @@ El detalle incluye autor público o anónimo, galería ampliable, mapa, fechas,
 tiempos e historial con propuestas. Si falta una foto, muestra un aviso y permite
 reintentar. Los reportes eliminados no se muestran en lista, mapa ni detalle.
 
-Todavía no incluye el formulario de alta, acceso con Google,
-captura de fotos, revisión administrativa ni estadísticas. El CRUD se encuentra
+Incluye flujo de acceso Google/Firebase, elección de nombre público, cierre de
+sesión, rutas protegidas y Mis reportes. **Falta crear y configurar el proyecto
+Firebase para usar cuentas reales**; sin configuración se puede explorar como
+visitante. Ver [configuración Firebase](docs/firebase-setup.md).
+
+Todavía no incluye el formulario de alta, captura de fotos, revisión administrativa
+ni estadísticas. El CRUD se encuentra
 en la capa de datos y se verifica mediante pruebas. No contiene usuarios ni
 credenciales de demostración que aparenten autenticación real.
 
@@ -59,8 +64,9 @@ con la firma de depuración que incluye la plantilla Android.
 
 ## Configuración futura
 
-Google/Firebase y el UID administrador se integrarán en TASK-005. No publicar
-tokens ni claves de firma. El nombre público se elige después de Google.
+La integración de Google/Firebase está preparada; requiere la configuración local
+descrita en `docs/firebase-setup.md`. El rol admin proviene de un claim de Firebase.
+No publicar tokens ni claves de firma. El nombre público se elige después de Google.
 El admin local solo puede gestionar los datos presentes en su teléfono.
 La administración web futura requiere backend y sincronización.
 

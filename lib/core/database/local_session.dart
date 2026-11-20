@@ -13,6 +13,15 @@ class LocalSession {
   final AppDatabase db;
   final SessionUid currentUid;
 
+  void ensureCurrent(AppUser actor) {
+    if (currentUid() != actor.uid) {
+      throw const RepositoryException(
+        RepositoryError.unauthenticated,
+        'La sesión cambió. Vuelve a iniciar sesión para continuar.',
+      );
+    }
+  }
+
   Future<AppUser> requireUser() async {
     final uid = currentUid();
     if (uid == null) {

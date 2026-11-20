@@ -1,48 +1,46 @@
-# Verificación de TASK-004
+# Verificación de TASK-005
 
+- `flutter test --no-pub --reporter=expanded --concurrency=1`: 63 pruebas aprobadas.
 - `flutter analyze --no-pub`: sin problemas.
-- `flutter test --no-pub --concurrency=1 --reporter=expanded`: 48 pruebas aprobadas.
-- `flutter build apk --debug --no-pub`: APK final compilado correctamente.
-- Formato Dart verificado sin cambios pendientes.
+- Formato Dart aplicado y diagnósticos temporales retirados.
+- APK Android de depuración compilado con los SDK de Firebase/Google y sin
+  configuración de proyecto: permite explorar y muestra el estado pendiente del login.
 
-## Cobertura
+## Casos nuevos
 
-Se mantienen las pruebas de SQLite, migraciones, permisos y mapa de las fases
-anteriores. Esta entrega añade comprobaciones de:
+- Crear como visitante conduce al acceso con Google y conserva `/nuevo`.
+- Login verificado exige elegir nombre; posponerlo permite explorar y vuelve a
+  exigirlo al intentar crear. Guardarlo retoma la acción pendiente.
+- Cancelación y error de conexión no crean usuarios autenticados ficticios.
+- La restauración conserva el nombre elegido; eventos duplicados del SDK no
+  duplican LOGIN. No se copian nombre ni avatar de Google a la atribución pública.
+- Nombre «Administrador» no otorga permisos. Solo el claim verificado concede
+  admin; una actualización que lo retira vuelve a ciudadano.
+- Cierre de sesión conserva datos locales e invalida un login todavía pendiente.
+- Fallo de auditoría de logout no mantiene abierta la sesión del SDK/local.
+- Mis reportes filtra por cuenta activa, incluso reportes anónimos.
+- Cambio de sesión durante validación de fotos aborta la creación del reporte.
+- Envío doble inicia un único flujo de proveedor.
+- Sin configuración Firebase la app conserva lectura pública y rechaza login.
+- Destinos de retorno limitados a rutas internas conocidas.
 
-- Igualdad de identificadores y orden entre mapa y lista al combinar búsqueda,
-  categoría, estado y límites de fecha. Mayúsculas españolas y búsqueda literal
-  con `%` o texto similar a SQL.
-- Conservación de categorías inactivas en consultas históricas y exclusión de
-  reportes eliminados tanto en lista como en detalle.
-- Proyección pública anónima e historial/propuestas sin actores internos.
-- Navegación lista → búsqueda → mapa → detalle → regreso, conservando filtros.
-- Filtro de estado sin coincidencias y restauración con «Limpiar filtros».
-- Lectura privada de fotos, rechazo de rutas externas, archivo ausente y apertura
-  del visor con zoom sobre una imagen real de prueba.
-- Manejo de retroceso del reloj para el tiempo pendiente.
-- Buscador con teclado Android en pantalla 360 × 640, sin desbordamiento.
+Los tests usan un proveedor de identidad explícitamente limitado a `test/`.
+No hay acceso simulado ni cuenta admin predeterminada en el APK. Las pruebas
+de interfaz alternan el reloj simulado y eventos reales al cancelar streams.
 
-Los datos se crean solo en fixtures de pruebas, no en el APK. Las teselas se
-inyectan desde memoria y no se realizan descargas de mapas en las pruebas.
+## Pendiente externo confirmado
 
-## Revisión manual
+El usuario todavía no tiene proyecto Firebase. La autenticación con cuentas
+reales, firmas SHA de Android y el claim administrador no están verificadas.
+Seguir [firebase-setup.md](firebase-setup.md) cuando se cree el proyecto.
+La aceptación completa de TASK-005 queda pendiente de esa configuración y
+revisión en un teléfono. Las pantallas y repositorios sí están implementados.
 
-1. Abrir Reportes con la base vacía y comprobar el aviso y acceso a Crear reporte.
-2. Abrir «Ver categorías» para consultar el catálogo local.
-3. Abrir filtros, elegir estado/categoría/fechas y orden; aplicar y limpiar.
-4. Escribir una búsqueda, cambiar al mapa y comprobar que el texto se conserva.
-5. Con datos locales existentes, abrir una tarjeta o marcador y revisar autor
-   público/anónimo, fotos ampliables, ubicación, tiempos e historial.
-6. Si falta una foto, comprobar aviso, reintento y acceso al resto del reporte.
-7. Sin Internet, verificar lista, filtros, detalle y fotos locales; el mapa puede
-   mostrar un error recuperable por falta de teselas.
+El primer intento de compilación se interrumpió por espacio insuficiente al
+instalar Android 34. La descarga posterior fue excesivamente lenta. La configuración
+de compilación aplica la API pública `finalizeDsl` de AGP para compilar los módulos
+FlutterFire con Android SDK 35, disponible en la herramienta actual; no cambia
+el minSdk ni el targetSdk de la aplicación.
 
-No se realizó revisión manual en dispositivo durante esta entrega. El formulario
-de alta llegará en TASK-006; hasta entonces una instalación vacía no tiene reportes
-de ejemplo ni usuarios simulados. Google y el UID administrador son TASK-005.
-
-APK: `build/app/outputs/flutter-apk/app-debug.apk`.
-Rama: `feature/TASK-004-reportes-detalle`.
-El avance previo está guardado en `ef07714`; esta fase se guarda en un segundo
-commit al cerrar la entrega. Los commits son locales, sin push al remoto.
+Rama: `feature/TASK-005-google-perfil`. El avance anterior ya estaba guardado en
+`653a10d`; esta fase se guarda en un commit adicional local. Sin push al remoto.

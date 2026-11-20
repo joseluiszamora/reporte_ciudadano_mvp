@@ -70,8 +70,8 @@ void main() {
       );
       await tester.tap(find.byIcon(Icons.add_circle_outline));
       await tester.pumpAndSettle();
-      expect(find.text('Crear reporte'), findsOneWidget);
-      expect(find.textContaining('Necesitarás iniciar sesión'), findsOneWidget);
+      expect(find.text('Iniciar sesión'), findsOneWidget);
+      expect(find.text('Continuar con Google'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.runAsync(db.close);
     },

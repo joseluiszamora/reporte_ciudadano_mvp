@@ -15,12 +15,13 @@ class LocalUserStore {
   final LocalSession session;
   final DateTime Function() clock;
 
-  /// Only the future Google adapter calls this after verifying the identity.
-  /// New identities always start as citizens; signing in never changes roles/names.
+  /// Only the Google adapter calls this after verifying the identity.
+  /// A verified role can refresh permissions; public names are never overwritten.
   Future<void> recordGoogleSignIn({
     required String uid,
     String? email,
     String? photoUrl,
+    UserRole? verifiedRole,
   }) => db.transaction(() async {
     if (uid.trim().isEmpty || session.currentUid() != uid) {
       throw const RepositoryException(
@@ -31,10 +32,19 @@ class LocalUserStore {
     final now = clock().toUtc();
     await db.customStatement(
       '''
-      INSERT INTO users(id,email,photo_url,created_at,last_sign_in_at) VALUES(?,?,?,?,?)
-      ON CONFLICT(id) DO UPDATE SET email=excluded.email,photo_url=excluded.photo_url,last_sign_in_at=excluded.last_sign_in_at
+      INSERT INTO users(id,email,photo_url,created_at,last_sign_in_at,role) VALUES(?,?,?,?,?,?)
+      ON CONFLICT(id) DO UPDATE SET email=excluded.email,photo_url=excluded.photo_url,last_sign_in_at=excluded.last_sign_in_at,
+        role=CASE WHEN ? IS NULL THEN users.role ELSE excluded.role END
     ''',
-      [uid, email, photoUrl, now.toIso8601String(), now.toIso8601String()],
+      [
+        uid,
+        email,
+        photoUrl,
+        now.toIso8601String(),
+        now.toIso8601String(),
+        verifiedRole == UserRole.admin ? 'ADMIN' : 'CITIZEN',
+        verifiedRole?.name,
+      ],
     );
     final actor = await session.requireUser();
     await AuditDao(db).append(
@@ -43,6 +53,26 @@ class LocalUserStore {
       entityType: 'user',
       entityId: uid,
       at: now,
+    );
+    db.changed({'users', 'audit_events'});
+  });
+
+  /// Only a role derived from the Firebase token reaches this method.
+  Future<void> refreshVerifiedRole(UserRole role) => db.transaction(() async {
+    final before = await session.requireUser();
+    if (before.role == role) return;
+    await db.customStatement('UPDATE users SET role=? WHERE id=?', [
+      role == UserRole.admin ? 'ADMIN' : 'CITIZEN',
+      before.uid,
+    ]);
+    await AuditDao(db).append(
+      actor: before,
+      action: 'ROLE_REFRESHED',
+      entityType: 'user',
+      entityId: before.uid,
+      at: clock(),
+      changedFields: ['role'],
+      reason: 'Autorización de Firebase actualizada',
     );
     db.changed({'users', 'audit_events'});
   });

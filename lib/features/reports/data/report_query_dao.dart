@@ -8,9 +8,13 @@ import 'report_dao.dart';
 class ReportQueryDao {
   ReportQueryDao(this.db);
   final AppDatabase db;
-  Future<List<QueryRow>> rows(ReportFilter filter) async {
+  Future<List<QueryRow>> rows(ReportFilter filter, {String? authorUid}) async {
     final where = <String>['r.deleted_at IS NULL'];
     final variables = <Variable>[];
+    if (authorUid != null) {
+      where.add('r.author_uid=?');
+      variables.add(Variable.withString(authorUid));
+    }
     if (filter.categoryId != null) {
       where.add('r.category_id=?');
       variables.add(Variable.withString(filter.categoryId!));
