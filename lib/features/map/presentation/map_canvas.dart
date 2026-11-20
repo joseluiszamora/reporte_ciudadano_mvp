@@ -159,7 +159,7 @@ class _MapCanvasState extends State<MapCanvas> {
                   TileLayer(
                     key: ValueKey(generation),
                     urlTemplate: MapTiles.url,
-                    userAgentPackageName: 'bo.elalto.reporte_ciudadano_mvp',
+                    userAgentPackageName: 'com.mvp.reporte_ciudadano_mvp',
                     tileProvider: provider,
                     maxNativeZoom: 19,
                     panBuffer: 0,

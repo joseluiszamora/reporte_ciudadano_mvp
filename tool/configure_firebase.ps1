@@ -1,8 +1,8 @@
 param([Parameter(Mandatory = $true)][string]$GoogleServicesPath)
 $ErrorActionPreference = 'Stop'
 $firebaseData = Get-Content -LiteralPath $GoogleServicesPath -Raw | ConvertFrom-Json
-$androidClient = @($firebaseData.client | Where-Object { $_.client_info.android_client_info.package_name -eq 'bo.elalto.reporte_ciudadano_mvp' })
-if ($androidClient.Count -ne 1) { throw 'Debe existir exactamente un cliente Android para bo.elalto.reporte_ciudadano_mvp.' }
+$androidClient = @($firebaseData.client | Where-Object { $_.client_info.android_client_info.package_name -eq 'com.mvp.reporte_ciudadano_mvp' })
+if ($androidClient.Count -ne 1) { throw 'Debe existir exactamente un cliente Android para com.mvp.reporte_ciudadano_mvp.' }
 $selectedClient = $androidClient[0]
 $webClient = @($selectedClient.oauth_client | Where-Object { $_.client_type -eq 3 })
 if ($webClient.Count -lt 1) { throw 'Falta un cliente OAuth web (client_type 3). Habilita Google en Firebase Auth y vuelve a descargar google-services.json.' }

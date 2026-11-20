@@ -4,10 +4,16 @@ El usuario confirmó que configuró Firebase y comprobó el acceso con Google y 
 registro de reportes en Android. Cada entorno que compile con Google necesita su
 configuración local. El APK sin ese archivo permite explorar como visitante.
 
+El paquete de la rama consolidada es `com.mvp.reporte_ciudadano_mvp`. Android
+solo conserva los datos al actualizar una instalación del mismo paquete firmada
+con el mismo certificado. Si el teléfono ya tiene `bo.elalto.reporte_ciudadano_mvp`,
+la nueva aplicación se instala por separado y no abre la base anterior.
+
 ## Configuración de proyecto
 
-1. Crear un proyecto en [Firebase Console](https://console.firebase.google.com/).
-2. Registrar una app Android con paquete `bo.elalto.reporte_ciudadano_mvp`.
+1. Abrir el proyecto de esta app en [Firebase Console](https://console.firebase.google.com/).
+   Si todavía no existe, crearlo.
+2. Registrar una app Android con paquete `com.mvp.reporte_ciudadano_mvp`.
 3. En Authentication → proveedores, habilitar Google y definir el correo de soporte.
 4. Registrar SHA-1 y SHA-256 del certificado de depuración y, antes de publicar,
    del certificado de producción. Desde `android/` se pueden consultar con
@@ -23,13 +29,16 @@ AGP; instalar esa plataforma junto a las que requiera la versión de Flutter.
 
 ## Generar configuración local
 
-Desde la raíz, usando PowerShell:
+Desde la raíz, con el Dart que incluye Flutter:
 
-```powershell
-./tool/configure_firebase.ps1 -GoogleServicesPath 'C:/ruta/google-services.json'
+```sh
+dart tool/configure_firebase.dart "/ruta/a/google-services.json"
 flutter run --dart-define-from-file=config/firebase.android.json
 flutter build apk --debug --dart-define-from-file=config/firebase.android.json
 ```
+
+En Windows, el comando anterior de PowerShell sigue disponible como
+`./tool/configure_firebase.ps1 -GoogleServicesPath 'C:/ruta/google-services.json'`.
 
 El script valida el paquete y obtiene API key del cliente, App ID Android,
 ID de proyecto, número de proyecto y client ID OAuth web. Genera

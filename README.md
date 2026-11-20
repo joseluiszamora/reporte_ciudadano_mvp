@@ -91,7 +91,7 @@ con la firma de depuración que incluye la plantilla Android.
 
 ## Configuración futura
 
-La integración de Google/Firebase está preparada; requiere la configuración local
+La integración de Google/Firebase requiere la configuración local
 descrita en `docs/firebase-setup.md`. El rol admin proviene de un claim de Firebase.
 No publicar tokens ni claves de firma. El nombre público se elige después de Google.
 El admin local solo puede gestionar los datos presentes en su teléfono.

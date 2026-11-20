@@ -161,7 +161,7 @@ posponer el nombre para explorar, pero no para ejecutar acciones protegidas.
 la cuenta no cambió durante la consulta. Las escrituras de reportes también
 revalidan la identidad tras la validación asíncrona de fotos.
 
-Google/Firebase debe configurarse para `bo.elalto.reporte_ciudadano_mvp` con sus
+Google/Firebase debe configurarse para `com.mvp.reporte_ciudadano_mvp` con sus
 firmas de desarrollo y publicación. No usar nombre, correo introducido por el
 usuario ni un botón de UI para dar rol admin.
 En esta fase local, un administrador gestionará solo los datos de su teléfono.

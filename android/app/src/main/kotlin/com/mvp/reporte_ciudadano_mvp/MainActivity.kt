@@ -1,4 +1,4 @@
-package bo.elalto.reporte_ciudadano_mvp
+package com.mvp.reporte_ciudadano_mvp
 
 import android.content.ActivityNotFoundException
 import android.content.Intent

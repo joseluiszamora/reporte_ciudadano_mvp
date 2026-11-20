@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "bo.elalto.reporte_ciudadano_mvp"
+    namespace = "com.mvp.reporte_ciudadano_mvp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +15,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "bo.elalto.reporte_ciudadano_mvp"
+        applicationId = "com.mvp.reporte_ciudadano_mvp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
