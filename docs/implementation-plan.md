@@ -8,11 +8,11 @@ No se considera completado el MVP con esta estructura.
 | TASK-002 SQLite | Persistencia implementada y cubierta por pruebas | Validación manual del APK en dispositivo pendiente |
 | TASK-003 Mapa | Mapa y selector implementados; verificación automatizada | Revisión manual de APK, GPS real y conectividad en Android |
 | TASK-004 Reportes | Lista, búsqueda, filtros y detalle implementados | Revisión manual del APK y de fotografías reales en Android |
-| TASK-005 Google y perfil | Integración y flujos implementados; configuración Firebase pendiente | Crear proyecto Firebase y verificar login/firmas/claims reales en Android |
-| TASK-006 Alta y fotos | Formulario, vista previa, fotos y borradores implementados | Configurar Firebase y revisar cámara/galería y reinicio en Android real |
-| TASK-007 Administración | Gestión, propuestas, revisión atómica e informe privado implementados y cubiertos por pruebas | Configurar Firebase y revisar permisos/claims y evidencias en Android real |
+| TASK-005 Google y perfil | Inicio con Google comprobado por el usuario en Android | Revisar retiro del claim, cambio de cuenta y firma de distribución |
+| TASK-006 Alta y fotos | Alta de reportes comprobada por el usuario en Android | Revisar denegaciones y recuperación tras interrumpir la cámara |
+| TASK-007 Administración | Gestión, propuestas, revisión atómica e informe privado implementados y cubiertos por pruebas | Revisar permisos/claims y evidencias en Android real |
 | TASK-008 Estadísticas | Indicadores, filtros, tiempos y separación demo implementados y cubiertos por pruebas | Verificación manual de fechas locales, tiempos, lectura ampliada y actualización en Android |
-| TASK-009 Calidad | Pendiente | Compartir, accesibilidad, permisos, APK interno y revisión manual |
+| TASK-009 Calidad | Resumen compartible, navegación accesible de fotos y APK interno | Verificar hoja de compartir, TalkBack y permisos en Android real |
 
 Trabajar en ramas feature/TASK-xxx-descripcion. Cada entrega incluye aceptación
 manual y evidencias; probar permisos en repositorio, no solo ocultar botones.

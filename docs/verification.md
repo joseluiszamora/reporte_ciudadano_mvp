@@ -48,6 +48,32 @@ Los tests usan SQLite real en memoria, reloj/ticks controlados y proveedores de 
 6. Verificar separación demo si existen registros de demostración identificados.
 7. Ampliar texto y recorrer todos los indicadores sin recortes ni pérdida de controles.
 
-No se realizó prueba en un teléfono real durante esta entrega. Firebase sigue pendiente para crear reportes y validar cuentas/claims reales; consultar estadísticas de los datos ya guardados no requiere login. Los indicadores no evalúan atención institucional ni representan información de otros dispositivos.
+Después de esta entrega, el usuario confirmó que inició sesión con Google y registró reportes en Android. Queda por comprobar el rol administrativo y los indicadores en el dispositivo. Consultar estadísticas no requiere login.
 
 Rama: `codex/TASK-008-estadisticas`, basada en `4889380`. Próxima fase: TASK-009 (compartir, accesibilidad y aceptación/calidad del APK).
+
+## TASK-009
+
+La suite completa pasó 115 pruebas. El análisis estático quedó limpio y `apksigner`
+verificó la firma del APK interno. La nueva prueba de interfaz cubre las etiquetas
+de acciones, la cancelación, el anonimato y la eliminación durante la vista previa.
+
+El resumen de texto se revisa antes de abrir la hoja nativa de Android. Incluye
+datos del detalle público y marca los reportes demo. La acción vuelve a consultar
+el reporte al confirmar y descarta un resumen que haya cambiado o se haya eliminado.
+El texto no adjunta archivos ni agrega identificadores internos o enlaces al reporte.
+
+El APK de depuración usa el código de versión 2. El manifiesto conserva Internet
+y ubicación en primer plano. Compartir texto no necesita permisos nuevos. La cámara
+y galería usan el selector del sistema, y el pin manual sigue disponible sin GPS.
+
+Este entorno no dispone de `config/firebase.android.json` ni de un Android
+conectado. La comprobación del usuario corresponde a su compilación configurada.
+El emulador local no pudo arrancar por falta de espacio en disco.
+Quedan por probar en el teléfono la hoja nativa, su cancelación, TalkBack,
+permisos denegados, actualización sobre la instalación que contiene los reportes
+y cambios del rol admin. Usar la configuración Firebase validada y el mismo
+certificado al compilar una actualización para esa instalación.
+
+Referencias: [hoja de compartir de Android](https://developer.android.com/training/sharing/send?hl=es)
+y [pruebas de accesibilidad en Flutter](https://docs.flutter.dev/ui/accessibility/accessibility-testing).

@@ -55,5 +55,6 @@ android/key.properties
 *.jks
 *.keystore
 android/app/google-services.json
+android/app/src/**/google-services.json
 lib/firebase_options.dart
 config/firebase.android.json

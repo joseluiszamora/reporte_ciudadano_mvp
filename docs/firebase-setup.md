@@ -1,9 +1,8 @@
 # Activar Google/Firebase en Android
 
-El usuario confirmó que todavía no tiene un proyecto Firebase. La integración de
-TASK-005 queda preparada; la autenticación real no puede verificarse hasta crear
-y configurar ese proyecto. El APK sin configuración permite explorar como
-visitante y explica por qué el acceso con Google no está habilitado.
+El usuario confirmó que configuró Firebase y comprobó el acceso con Google y el
+registro de reportes en Android. Cada entorno que compile con Google necesita su
+configuración local. El APK sin ese archivo permite explorar como visitante.
 
 ## Configuración de proyecto
 
@@ -53,9 +52,9 @@ una identidad persistida puede seguir usando funciones locales como ciudadano.
 La administración local de reportes está implementada en TASK-007. El backend futuro
 deberá validar nuevamente permisos en servidor: SQLite no reemplaza esa validación.
 
-## Comprobación real pendiente
+## Comprobaciones adicionales en Android
 
-- Inicio, cancelación y repetición del selector Google en un teléfono Android.
+- Cancelación y repetición del selector Google en un teléfono Android.
 - Elección obligatoria del nombre público sin copiar el de Google.
 - Retorno a Crear reporte después del login y del nombre.
 - Cierre y reapertura de app, restauración de nombre y sesión, logout y cambio de cuenta.

@@ -72,6 +72,7 @@ class _ReportPhotoState extends State<ReportPhoto> {
         if (image == null) return missing();
         return Semantics(
           label: 'Fotografía del reporte',
+          hint: widget.expandable ? 'Abre la fotografía ampliada' : null,
           button: widget.expandable,
           child: GestureDetector(
             onTap: !widget.expandable

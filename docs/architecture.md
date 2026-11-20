@@ -11,7 +11,7 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 
 | Feature | Dominio | Datos | Presentación pendiente |
 |---|---|---|---|
-| auth | AppUser, AuthRepository | FirebaseGoogleGateway, GoogleAuthRepository, LocalUserStore | Login y nombre público implementados; falta configurar Firebase |
+| auth | AppUser, AuthRepository | FirebaseGoogleGateway, GoogleAuthRepository, LocalUserStore | Login con Google comprobado por el usuario en Android |
 | categories | CategoryRepository | SqliteCategoryRepository | Catálogo y selector del formulario implementados |
 | reports | ReportPolicy, ReportRepository, ReportReadRepository, ReportComposition, ResolutionRepository | Repositorios SQLite, PrivateReportDraftStore | Lista, detalle, alta, edición y gestión implementados |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
@@ -136,7 +136,8 @@ Seleccionar proveedor para despliegue masivo antes de lanzamiento público.
 
 ## Autenticación (TASK-005)
 
-No hay proyecto Firebase configurado todavía, por confirmación del usuario.
+El usuario configuró Firebase y comprobó el acceso en Android. La configuración
+local se mantiene fuera del repositorio.
 `FirebaseGoogleGateway` conecta Google Sign-In con Firebase Auth mediante opciones
 explícitas y client ID OAuth web. Sin configuración no inicializa SDK ni permite
 login; se mantiene la lectura como visitante. Ver `docs/firebase-setup.md`.

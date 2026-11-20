@@ -10,6 +10,7 @@ import '../../map/presentation/map_tiles.dart';
 import '../domain/report_read_repository.dart';
 import 'report_labels.dart';
 import 'report_photo.dart';
+import 'report_share.dart';
 
 class ReportDetailPage extends StatefulWidget {
   const ReportDetailPage({
@@ -32,6 +33,55 @@ class ReportDetailPage extends StatefulWidget {
 class _ReportDetailPageState extends State<ReportDetailPage> {
   late Stream<ReportView?> source = widget.repository.watchDetail(widget.id);
   late final Timer timer;
+  final photoController = PageController();
+
+  Future<void> share(ReportView view) async {
+    final summary = ReportShare.summary(view);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Compartir resumen'),
+        content: SingleChildScrollView(child: SelectableText(summary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Compartir'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    try {
+      final current = await widget.repository.watchDetail(widget.id).first;
+      if (!mounted) return;
+      if (current == null || ReportShare.summary(current) != summary) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'El reporte cambió o ya no está disponible. Revisa el detalle.',
+            ),
+          ),
+        );
+        return;
+      }
+      await ReportShare.send(summary);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudo compartir. Abre el resumen para copiar el texto.',
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +93,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
   @override
   void dispose() {
     timer.cancel();
+    photoController.dispose();
     super.dispose();
   }
 
@@ -111,6 +162,11 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             Text('Autor: ${report.publicAuthor}'),
             Text(view.category),
             Text('Estado: ${ReportLabels.status(report.status)}'),
+            OutlinedButton.icon(
+              onPressed: () => share(view),
+              icon: const Icon(Icons.share_outlined),
+              label: const Text('Compartir resumen'),
+            ),
             if (widget.onManage != null)
               OutlinedButton.icon(
                 onPressed: widget.onManage,
@@ -133,12 +189,13 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
               const Text('No hay fotografías disponibles.')
             else ...[
               Text(
-                '${view.photos.length} fotografía(s). Desliza para verlas y toca para ampliar.',
+                '${view.photos.length} fotografía(s). Toca una fotografía para ampliarla.',
               ),
               const SizedBox(height: 8),
               SizedBox(
                 height: 240,
                 child: PageView(
+                  controller: photoController,
                   children: [
                     for (final photo in view.photos)
                       Padding(
@@ -151,6 +208,25 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                   ],
                 ),
               ),
+              if (view.photos.length > 1)
+                Wrap(
+                  children: [
+                    TextButton(
+                      onPressed: () => photoController.previousPage(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      ),
+                      child: const Text('Foto anterior'),
+                    ),
+                    TextButton(
+                      onPressed: () => photoController.nextPage(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                      ),
+                      child: const Text('Foto siguiente'),
+                    ),
+                  ],
+                ),
             ],
             const SizedBox(height: 20),
             Text('Descripción', style: Theme.of(context).textTheme.titleMedium),

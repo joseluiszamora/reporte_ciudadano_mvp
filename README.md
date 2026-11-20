@@ -23,9 +23,9 @@ tiempos e historial con propuestas. Si falta una foto, muestra un aviso y permit
 reintentar. Los reportes eliminados no se muestran en lista, mapa ni detalle.
 
 Incluye flujo de acceso Google/Firebase, elección de nombre público, cierre de
-sesión, rutas protegidas y Mis reportes. **Falta crear y configurar el proyecto
-Firebase para usar cuentas reales**; sin configuración se puede explorar como
-visitante. Ver [configuración Firebase](docs/firebase-setup.md).
+sesión, rutas protegidas y Mis reportes. El usuario comprobó el acceso con Google y
+el alta de reportes en Android. La configuración se incorpora al compilar y se
+mantiene fuera de Git. Ver [configuración Firebase](docs/firebase-setup.md).
 
 El formulario de alta incluye categoría, título, descripción, cámara/galería,
 ubicación corregible, anonimato y vista previa antes de publicar. Guarda las fotos
@@ -45,6 +45,9 @@ creación; los datos demo se incluyen solo al solicitarlo y se muestran aparte.
 Los indicadores son públicos, locales a este teléfono y excluyen eliminados.
 No contiene usuarios ni credenciales de demostración que aparenten autenticación real.
 
+Desde el detalle se puede revisar y compartir un resumen de texto mediante Android.
+Los botones «Foto anterior» y «Foto siguiente» permiten recorrer la galería sin deslizar.
+
 ## Ejecutar y verificar
 
 Requisitos: Flutter 3.47.3 / Dart 3.13.3 o compatibles, SDK Android y dispositivo
@@ -59,6 +62,14 @@ flutter build apk --debug
 ```
 
 APK de depuración: `build/app/outputs/flutter-apk/app-debug.apk`.
+Para un APK interno con Google, compilar con la configuración ya validada:
+
+```powershell
+flutter build apk --debug --dart-define-from-file=config/firebase.android.json
+```
+
+Para instalarlo sobre una copia existente y conservar sus reportes, usar el mismo
+certificado Android y `adb install -r build/app/outputs/flutter-apk/app-debug.apk`.
 La firma de publicación aún no está configurada; no distribuir el build release
 con la firma de depuración que incluye la plantilla Android.
 
