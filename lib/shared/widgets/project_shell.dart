@@ -20,9 +20,7 @@ class ProjectShell extends StatelessWidget {
       children: [
         if (MediaQuery.viewInsetsOf(context).bottom == 0)
           const MaterialBanner(
-            content: Text(
-              'Prototipo local en construcción. Los reportes se guardarán en este teléfono.',
-            ),
+            content: Text('Los reportes se guardan en este teléfono.'),
             actions: [SizedBox.shrink()],
           ),
         Expanded(child: child),

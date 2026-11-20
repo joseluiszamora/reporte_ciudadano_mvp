@@ -74,8 +74,11 @@ para reportes eliminados. Las fechas del informe son días locales y el CSV cons
 
 ## Datos locales y demostración
 
-No sembrar reportes reales ni usuarios. Categorías sembradas son catálogo.
-Reportes demo usan is_demo y se distinguen por registro; su revisión es simulada.
+La instalación inicial solo siembra el catálogo. En Perfil, cualquier visitante
+puede cargar tres reportes ficticios una vez por base local. La carga conserva los
+reportes existentes y usa un registro técnico anónimo para sus referencias SQLite,
+sin cuenta de acceso ni rol administrativo. Los ejemplos no traen fotografías
+y cada reporte e historial ficticio se identifica como demostración.
 Indicadores separan demo de datos propios y excluyen eliminados. Etiqueta base:
 «Estadísticas locales; no representan a toda la ciudad»; agregar aviso demo al incluirlos.
 Primera autenticación requiere Internet; sesión persistida permite trabajo local

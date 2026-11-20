@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../core/media/local_photo_reader.dart';
 import '../features/reports/data/sqlite_report_read_repository.dart';
+import '../features/reports/data/demo_report_loader.dart';
 import '../features/reports/presentation/report_filter_cubit.dart';
 
 import '../core/database/app_database.dart';
@@ -90,6 +91,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
       auth: auth,
       authRefresh: authRefresh,
       myReports: SqliteMyReportsRepository(db, session),
+      loadDemoReports: DemoReportLoader(db).load,
       writeReports: SqliteReportRepository(db, session, storage),
       resolutions: SqliteResolutionRepository(db, session, storage),
       audit: SqliteAuditRepository(db, session),

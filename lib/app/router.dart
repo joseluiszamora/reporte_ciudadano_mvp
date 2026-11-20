@@ -41,6 +41,7 @@ GoRouter createAppRouter(
   required AuthCubit auth,
   required AuthRouterRefresh authRefresh,
   required MyReportsRepository myReports,
+  required Future<bool> Function() loadDemoReports,
   required ReportRepository writeReports,
   required ResolutionRepository resolutions,
   required AuditRepository audit,
@@ -120,7 +121,11 @@ GoRouter createAppRouter(
           ),
           GoRoute(
             path: '/perfil',
-            builder: (_, _) => ProfilePage(auth: auth, reports: myReports),
+            builder: (_, _) => ProfilePage(
+              auth: auth,
+              reports: myReports,
+              loadDemoReports: loadDemoReports,
+            ),
           ),
         ],
       ),

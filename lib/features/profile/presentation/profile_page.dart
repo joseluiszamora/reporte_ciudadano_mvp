@@ -10,9 +10,15 @@ import '../domain/my_reports_repository.dart';
 import '../../reports/domain/report_policy.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key, required this.auth, required this.reports});
+  const ProfilePage({
+    super.key,
+    required this.auth,
+    required this.reports,
+    required this.loadDemoReports,
+  });
   final AuthCubit auth;
   final MyReportsRepository reports;
+  final Future<bool> Function() loadDemoReports;
   @override
   Widget build(BuildContext context) => BlocBuilder<AuthCubit, AuthState>(
     bloc: auth,
@@ -37,6 +43,8 @@ class ProfilePage extends StatelessWidget {
                   label: const Text('Iniciar sesión con Google'),
                 ),
                 if (state.message != null) Text(state.message!),
+                const SizedBox(height: 12),
+                _DemoReportsButton(load: loadDemoReports),
               ],
             ),
           ),
@@ -55,6 +63,7 @@ class ProfilePage extends StatelessWidget {
           const Divider(),
           Text('Mis reportes', style: Theme.of(context).textTheme.titleLarge),
           _MyReports(key: ValueKey(user.uid), reports: reports),
+          _DemoReportsButton(load: loadDemoReports),
           const SizedBox(height: 16),
           const Text(
             'Tus reportes y fotografías permanecen en este teléfono al cerrar sesión. Borrar los datos de la app puede eliminarlos.',
@@ -62,6 +71,62 @@ class ProfilePage extends StatelessWidget {
         ],
       );
     },
+  );
+}
+
+class _DemoReportsButton extends StatefulWidget {
+  const _DemoReportsButton({required this.load});
+  final Future<bool> Function() load;
+
+  @override
+  State<_DemoReportsButton> createState() => _DemoReportsButtonState();
+}
+
+class _DemoReportsButtonState extends State<_DemoReportsButton> {
+  bool busy = false;
+  bool loaded = false;
+
+  Future<void> load() async {
+    if (busy || loaded) return;
+    setState(() => busy = true);
+    try {
+      final added = await widget.load();
+      if (!mounted) return;
+      setState(() => loaded = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            added
+                ? 'Ejemplos agregados al mapa y al listado.'
+                : 'Los ejemplos ya se cargaron en este teléfono.',
+          ),
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudieron cargar los ejemplos. Intenta de nuevo.',
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => OutlinedButton(
+    onPressed: busy || loaded ? null : load,
+    child: Text(
+      busy
+          ? 'Cargando ejemplos…'
+          : loaded
+          ? 'Ejemplos cargados'
+          : 'Cargar reportes de demostración',
+    ),
   );
 }
 

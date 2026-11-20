@@ -267,7 +267,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                         ),
                         Text(ReportLabels.date(item.at)),
                         if (item.note != null) Text(item.note!),
-                        if (item.demo) const Text('Validación de demostración'),
+                        if (item.demo) const Text('Actividad de demostración'),
                         if (item.evidencePath != null)
                           SizedBox(
                             height: 180,

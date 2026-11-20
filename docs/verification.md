@@ -77,3 +77,30 @@ certificado al compilar una actualización para esa instalación.
 
 Referencias: [hoja de compartir de Android](https://developer.android.com/training/sharing/send?hl=es)
 y [pruebas de accesibilidad en Flutter](https://docs.flutter.dev/ui/accessibility/accessibility-testing).
+
+## Aceptación final en Android
+
+La compilación de aceptación pasó 116 pruebas, el análisis estático y la validación
+de firma del APK. El APK generado en este entorno permite la revisión como visitante.
+
+Usar el APK interno de versión `1.0.0+3` compilado con el archivo Firebase ya
+validado y el mismo certificado de la instalación que contiene tus reportes.
+Actualizar sobre esa instalación para comprobar que se conservan SQLite y fotos.
+La [guía de Firebase](firebase-setup.md) contiene los comandos y la asignación del rol admin.
+
+| Escenario | Resultado esperado |
+|---|---|
+| Abrir como visitante y cargar ejemplos desde Perfil | Aparecen tres casos marcados como demo en mapa y lista. Repetir la acción no agrega duplicados. |
+| Abrir Estadísticas antes y después de activar demostración | El total de reportes reales permanece igual. La sección demo muestra un caso por estado y 12 horas de resolución promedio. |
+| Crear como visitante y completar Google y nombre público | El flujo vuelve al formulario. Cerrar sesión devuelve a modo visitante y «Mis reportes» se separa por cuenta. |
+| Registrar un reporte con foto, pin y anonimato | La vista previa coincide con el detalle. Tras reiniciar se conservan el reporte y su foto. |
+| Denegar GPS, cancelar la cámara y probar una foto que falle | El pin manual funciona, cancelar conserva el borrador y el fallo pide volver a adjuntar la foto. |
+| Quitar Internet y abrir mapa y lista | El mapa permite reintentar. La lista y el detalle siguen mostrando los datos guardados. |
+| Proponer una solución y revisar con un admin | La propuesta pendiente conserva el estado. Aprobar registra historial, revisión y fecha de solución. Un ciudadano no puede aprobar. |
+| Reabrir, editar y eliminar | La reapertura retira el caso de la media de resolución. El borrado oculta el reporte y el admin conserva el evento en el informe y CSV. |
+| Compartir el detalle de un reporte anónimo | La vista previa y la hoja nativa muestran el resumen sin datos de cuenta ni enlaces al reporte. Cancelar cierra el flujo. |
+| Usar TalkBack y texto ampliado | Los controles de galería permiten avanzar y retroceder, y las acciones y resultados se pueden recorrer con el lector de pantalla. |
+
+La carga demo es opcional y deliberadamente usa casos sin fotos. Para probar cámara,
+galería, evidencia y el ciclo administrativo completo, crear un reporte de prueba
+con las cuentas configuradas en tu Android.

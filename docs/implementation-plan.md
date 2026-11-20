@@ -1,6 +1,8 @@
 # Plan y aceptación
 
-No se considera completado el MVP con esta estructura.
+Las nueve fases de desarrollo del MVP local están implementadas. La aceptación
+manual se realiza en conjunto con la compilación final siguiendo la
+[guía de verificación](verification.md#aceptación-final-en-android).
 
 | Tarea | Estado | Cierre requerido |
 |---|---|---|

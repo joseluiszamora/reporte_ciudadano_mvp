@@ -44,6 +44,8 @@ pendientes y promedio de resolución. Permite filtrar por categoría y fechas de
 creación; los datos demo se incluyen solo al solicitarlo y se muestran aparte.
 Los indicadores son públicos, locales a este teléfono y excluyen eliminados.
 No contiene usuarios ni credenciales de demostración que aparenten autenticación real.
+En **Perfil → Cargar reportes de demostración** puedes agregar tres ejemplos
+ficticios para recorrer mapa, lista, detalle y estadísticas como visitante.
 
 Desde el detalle se puede revisar y compartir un resumen de texto mediante Android.
 Los botones «Foto anterior» y «Foto siguiente» permiten recorrer la galería sin deslizar.
@@ -79,6 +81,7 @@ con la firma de depuración que incluye la plantilla Android.
 - [Decisiones, permisos y límites](docs/business-rules.md)
 - [Arquitectura e integraciones pendientes](docs/architecture.md)
 - [Plan por tarea y criterios de aceptación](docs/implementation-plan.md)
+- [Pruebas finales en Android](docs/verification.md#aceptación-final-en-android)
 - `assets/database/schema_v1.sql` y `schema_v2.sql`: esquema, categorías y migración.
 - `lib/app/`: aplicación, rutas y tema.
 - `lib/core/`: base de datos, medios y validaciones.
