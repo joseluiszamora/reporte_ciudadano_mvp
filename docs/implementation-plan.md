@@ -8,9 +8,9 @@ No se considera completado el MVP con esta estructura.
 | TASK-002 SQLite | Persistencia implementada y cubierta por pruebas | Validación manual del APK en dispositivo pendiente |
 | TASK-003 Mapa | Mapa y selector implementados; verificación automatizada | Revisión manual de APK, GPS real y conectividad en Android |
 | TASK-004 Reportes | Lista, búsqueda, filtros y detalle implementados | Revisión manual del APK y de fotografías reales en Android |
-| TASK-005 Google y perfil | Integración y flujos implementados; configuración Firebase pendiente | Crear proyecto Firebase y verificar login/firmas/claims reales en Android |
-| TASK-006 Alta y fotos | Formulario, vista previa, fotos y borradores implementados | Configurar Firebase y revisar cámara/galería y reinicio en Android real |
-| TASK-007 Administración | Gestión, propuestas, revisión atómica e informe privado implementados y cubiertos por pruebas | Configurar Firebase y revisar permisos/claims y evidencias en Android real |
+| TASK-005 Google y perfil | Firebase configurado para depuración y acceso con cuenta real confirmado en Android | Verificar restauración, cambio de cuenta, claims y firma de publicación |
+| TASK-006 Alta y fotos | Formulario, vista previa, fotos y borradores implementados | Revisar cámara, galería y reinicio en Android real |
+| TASK-007 Administración | Gestión, propuestas, revisión atómica e informe privado implementados y cubiertos por pruebas | Revisar permisos, claims y evidencias en Android real |
 | TASK-008 Estadísticas | Pendiente | Filtros, tiempos, exclusión de eliminados y separación demo |
 | TASK-009 Calidad | Pendiente | Compartir, accesibilidad, permisos, APK interno y revisión manual |
 

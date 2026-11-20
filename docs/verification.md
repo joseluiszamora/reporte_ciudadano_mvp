@@ -28,7 +28,7 @@ Los proveedores simulados de identidad y fotos existen únicamente en tests. El 
 
 ## Aceptación manual pendiente
 
-1. Crear/configurar Firebase según `docs/firebase-setup.md`; confirmar login real.
+1. Verificar los flujos de sesión pendientes según `docs/firebase-setup.md`.
 2. Probar la misma cuenta con y sin claim `admin`, incluyendo su retiro.
 3. Proponer con cámara/galería reales, cancelar y probar error de fotografía.
 4. Como ciudadano, verificar que no hay revisión administrativa; como admin, iniciar seguimiento, aprobar/rechazar con motivo y reabrir.
@@ -37,6 +37,6 @@ Los proveedores simulados de identidad y fotos existen únicamente en tests. El 
 7. Filtrar por fechas/actor/origen, copiar CSV y comprobarlo en el destino elegido.
 8. Cambiar de cuenta con gestión o informe abiertos y comprobar ocultación inmediata.
 
-No hay proyecto Firebase todavía, por confirmación del usuario. No se probaron claims, cámara ni galería en un teléfono real durante esta entrega. La aceptación manual permanece abierta. La administración es local al teléfono: la app web y el backend compartido siguen pendientes. Edición/propuesta sin enviar no son borradores persistentes; solo el alta cuenta con recuperación de TASK-006.
+Tras la entrega de TASK-007, el usuario configuró Firebase y confirmó el acceso con Google en Android. La revisión manual de claims, cámara y galería sigue pendiente. La administración es local al teléfono: la app web y el backend compartido siguen pendientes. Edición/propuesta sin enviar no son borradores persistentes; solo el alta cuenta con recuperación de TASK-006.
 
 Rama: `codex/TASK-007-administracion`. Base conservada en `e217550`; esta fase se guarda en un nuevo commit local, sin push al remoto.

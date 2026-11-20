@@ -1,14 +1,14 @@
 # Activar Google/Firebase en Android
 
-El usuario confirmó que todavía no tiene un proyecto Firebase. La integración de
-TASK-005 queda preparada; la autenticación real no puede verificarse hasta crear
-y configurar ese proyecto. El APK sin configuración permite explorar como
-visitante y explica por qué el acceso con Google no está habilitado.
+TASK-005 incluye el flujo de autenticación. Para habilitar el acceso con cuentas
+reales, configura un proyecto Firebase y compila con sus opciones locales. El APK
+sin configuración permite explorar como visitante.
 
 ## Configuración de proyecto
 
-1. Crear un proyecto en [Firebase Console](https://console.firebase.google.com/).
-2. Registrar una app Android con paquete `bo.elalto.reporte_ciudadano_mvp`.
+1. Abrir el proyecto de esta app en [Firebase Console](https://console.firebase.google.com/).
+   Si todavía no existe, crearlo.
+2. Registrar una app Android con paquete `com.mvp.reporte_ciudadano_mvp`.
 3. En Authentication → proveedores, habilitar Google y definir el correo de soporte.
 4. Registrar SHA-1 y SHA-256 del certificado de depuración y, antes de publicar,
    del certificado de producción. Desde `android/` se pueden consultar con
@@ -24,13 +24,16 @@ AGP; instalar esa plataforma junto a las que requiera la versión de Flutter.
 
 ## Generar configuración local
 
-Desde la raíz, usando PowerShell:
+Desde la raíz, con el Dart que incluye Flutter:
 
-```powershell
-./tool/configure_firebase.ps1 -GoogleServicesPath 'C:/ruta/google-services.json'
+```sh
+dart tool/configure_firebase.dart "/ruta/a/google-services.json"
 flutter run --dart-define-from-file=config/firebase.android.json
 flutter build apk --debug --dart-define-from-file=config/firebase.android.json
 ```
+
+En Windows, el comando anterior de PowerShell sigue disponible como
+`./tool/configure_firebase.ps1 -GoogleServicesPath 'C:/ruta/google-services.json'`.
 
 El script valida el paquete y obtiene API key del cliente, App ID Android,
 ID de proyecto, número de proyecto y client ID OAuth web. Genera
@@ -53,9 +56,11 @@ una identidad persistida puede seguir usando funciones locales como ciudadano.
 La administración local de reportes está implementada en TASK-007. El backend futuro
 deberá validar nuevamente permisos en servidor: SQLite no reemplaza esa validación.
 
-## Comprobación real pendiente
+## Validación en Android
 
-- Inicio, cancelación y repetición del selector Google en un teléfono Android.
+El usuario confirmó el acceso con una cuenta Google real en Android. Queda por verificar lo siguiente.
+
+- Cancelación y repetición del selector Google en un teléfono Android.
 - Elección obligatoria del nombre público sin copiar el de Google.
 - Retorno a Crear reporte después del login y del nombre.
 - Cierre y reapertura de app, restauración de nombre y sesión, logout y cambio de cuenta.

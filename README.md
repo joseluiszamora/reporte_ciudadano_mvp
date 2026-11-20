@@ -23,9 +23,9 @@ tiempos e historial con propuestas. Si falta una foto, muestra un aviso y permit
 reintentar. Los reportes eliminados no se muestran en lista, mapa ni detalle.
 
 Incluye flujo de acceso Google/Firebase, elección de nombre público, cierre de
-sesión, rutas protegidas y Mis reportes. **Falta crear y configurar el proyecto
-Firebase para usar cuentas reales**; sin configuración se puede explorar como
-visitante. Ver [configuración Firebase](docs/firebase-setup.md).
+sesión, rutas protegidas y Mis reportes. El acceso con una cuenta real ya se
+probó en Android. Para habilitarlo en una compilación local, sigue la
+[guía de Firebase](docs/firebase-setup.md). También se puede explorar como visitante.
 
 El formulario de alta incluye categoría, título, descripción, cámara/galería,
 ubicación corregible, anonimato y vista previa antes de publicar. Guarda las fotos
@@ -74,7 +74,7 @@ con la firma de depuración que incluye la plantilla Android.
 
 ## Configuración futura
 
-La integración de Google/Firebase está preparada; requiere la configuración local
+La integración de Google/Firebase requiere la configuración local
 descrita en `docs/firebase-setup.md`. El rol admin proviene de un claim de Firebase.
 No publicar tokens ni claves de firma. El nombre público se elige después de Google.
 El admin local solo puede gestionar los datos presentes en su teléfono.
