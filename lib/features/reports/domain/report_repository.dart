@@ -11,6 +11,7 @@ class ReportDraft {
     required this.identityMode,
     required List<StoredPhoto> photos,
     this.addressLabel,
+    this.requestId,
   }) : photos = List.unmodifiable(photos);
   final String categoryId;
   final String title;
@@ -20,6 +21,7 @@ class ReportDraft {
   final PublicIdentityMode identityMode;
   final List<StoredPhoto> photos;
   final String? addressLabel;
+  final String? requestId;
 }
 
 /// Public projection: never carries UID, email or Google photo URL.

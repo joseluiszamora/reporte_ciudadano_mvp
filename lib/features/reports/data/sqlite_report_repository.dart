@@ -142,9 +142,37 @@ class SqliteReportRepository implements ReportRepository {
   @override
   Future<String> create(ReportDraft draft) => db.transaction(() async {
     final actor = await session.requireCompleteProfile();
+    final requestedId = draft.requestId;
+    if (requestedId != null) {
+      if (!RegExp(
+        r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+      ).hasMatch(requestedId)) {
+        throw const RepositoryException(
+          RepositoryError.invalidInput,
+          'Identificador de borrador no válido.',
+        );
+      }
+      final existing = await db
+          .customSelect(
+            'SELECT author_uid,deleted_at FROM reports WHERE id=?',
+            variables: [Variable.withString(requestedId)],
+          )
+          .getSingleOrNull();
+      session.ensureCurrent(actor);
+      if (existing != null) {
+        if (existing.read<String>('author_uid') != actor.uid ||
+            existing.readNullable<String>('deleted_at') != null) {
+          throw const RepositoryException(
+            RepositoryError.conflict,
+            'El borrador ya no está disponible.',
+          );
+        }
+        return requestedId;
+      }
+    }
     await _validate(draft);
     session.ensureCurrent(actor);
-    final id = const Uuid().v4();
+    final id = requestedId ?? const Uuid().v4();
     final now = clock().toUtc();
     await db.customStatement(
       '''INSERT INTO reports(id,author_uid,category_id,title,description,latitude,longitude,address_label,

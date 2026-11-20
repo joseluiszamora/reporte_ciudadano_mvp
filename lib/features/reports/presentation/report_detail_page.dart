@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/location/geo_point.dart';
 import '../../../core/media/local_photo_reader.dart';
@@ -45,7 +46,18 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Detalle del reporte')),
+    appBar: AppBar(
+      title: const Text('Detalle del reporte'),
+      leading: BackButton(
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/reportes');
+          }
+        },
+      ),
+    ),
     body: StreamBuilder<ReportView?>(
       stream: source,
       builder: (context, snapshot) {

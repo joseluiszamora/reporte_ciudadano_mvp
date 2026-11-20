@@ -12,8 +12,8 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 | Feature | Dominio | Datos | Presentación pendiente |
 |---|---|---|---|
 | auth | AppUser, AuthRepository | FirebaseGoogleGateway, GoogleAuthRepository, LocalUserStore | Login y nombre público implementados; falta configurar Firebase |
-| categories | CategoryRepository | SqliteCategoryRepository | Catálogo local implementado; selector en formulario pendiente |
-| reports | ReportPolicy, ReportRepository, ReportReadRepository, ResolutionRepository | ReportDao, ReportQueryDao, repositorios SQLite | Lista y detalle implementados; alta y administración pendientes |
+| categories | CategoryRepository | SqliteCategoryRepository | Catálogo y selector del formulario implementados |
+| reports | ReportPolicy, ReportRepository, ReportReadRepository, ReportComposition, ResolutionRepository | Repositorios SQLite, PrivateReportDraftStore | Lista, detalle y alta implementados; administración pendiente |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
 | statistics | Cálculos y filtros pendientes | Consultas SQLite | Indicadores locales |
 | profile | Usuario autenticado, MyReportsRepository | AuthRepository, SqliteMyReportsRepository | Nombre, logout y Mis reportes implementados |
@@ -48,14 +48,35 @@ No modificar migraciones distribuidas: agregar versiones incrementales y probar
 conservación de registros y rutas. El esquema SQL se mantiene explícito, sin
 generación de código; los tipos se aplican en DAOs y modelos de dominio.
 
-## Fotos
+## Fotos y alta (TASK-006)
+
+`PrivatePhotoStorage` implementa PhotoStorage en la misma raíz privada que
+`PrivatePhotoReader`. Decodifica JPEG/PNG/WebP en un isolate, valida tamaño y
+dimensiones, corrige orientación y copia los píxeles a una imagen RGB nueva para
+no trasladar metadatos. Escribe un archivo `.part`, verifica los bytes y renombra
+a `photos/UUID.jpg`. Ante un fallo, limpia sus copias conocidas y deja el original
+intacto. `ReportMediaReferences` impide borrar rutas aún usadas por reportes,
+evidencias o snapshots privados de auditoría.
+
+`AndroidPhotoSelection` recupera resultados perdidos desde el arranque y ofrece
+cámara/galería con límites. `ReportComposerCubit` conserva formulario y fotos en
+un borrador por cuenta; `PrivateReportDraftStore` serializa lectura/escritura para
+evitar carreras al salir y volver rápidamente. El marcador del selector incluye
+la cuenta propietaria; no se entregan fotos recuperadas a otra cuenta.
+
+`NewReportPage` valida, permite revisar y publica solo por acción explícita. Su
+estado se reconstruye por UID al cambiar la cuenta. No incluye sesiones falsas.
+Se usa un requestId UUID v4 estable como id del reporte: la transacción de creación
+detecta reintentos del mismo autor sin repetir INSERT ni auditoría. Tras confirmar
+se abre el detalle, cuyo botón de regreso también funciona al entrar desde el alta.
 
 El adaptador de `PhotoStorage` debe copiar la foto al directorio privado,
 validar formato real, tamaño y lectura, y devolver ruta relativa. Nunca confiar
 solo en extensión/MIME declarado. Si falla: mostrar el mensaje definido por
 `PhotoStorageException`, conservar el formulario y pedir volver a adjuntarla.
-No guardar reportes incompletos. Si falla SQLite tras copiar fotos, limpiar las
-copias nuevas; recuperar archivos huérfanos tras interrupción en un siguiente inicio.
+No guardar reportes incompletos. Si falla SQLite tras copiar fotos, conservar las
+copias referenciadas por el borrador para reintentar; limpiar solo al quitar fotos
+o descartar, y respetar referencias de reportes, propuestas e historial.
 Si falta una foto de un reporte existente, mostrar el error y permitir al autor
 o admin reemplazarla con auditoría; no eliminar el reporte silenciosamente.
 
@@ -106,8 +127,8 @@ disponible si se elimina el reporte. Los tiempos se actualizan cada minuto mient
 la vista está abierta y se acotan a cero si el reloj retrocede.
 
 `PrivatePhotoReader` abre rutas relativas a `getApplicationDocumentsDirectory()`;
-rechaza rutas externas y enlaces que salgan del directorio privado. La futura
-importación de TASK-006 debe usar esa misma raíz y guardar rutas como `photos/UUID.jpg`.
+rechaza rutas externas y enlaces que salgan del directorio privado. La
+importación de TASK-006 usa esa misma raíz y guarda rutas como `photos/UUID.jpg`.
 `ReportPhoto` permite ampliar con zoom y muestra recuperación si falta el archivo
 o no se puede decodificar. No muestra rutas internas ni borra datos al fallar.
 

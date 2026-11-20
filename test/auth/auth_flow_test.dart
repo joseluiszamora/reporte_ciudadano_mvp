@@ -8,6 +8,7 @@ import 'package:reporte_ciudadano_mvp/features/auth/domain/auth_exception.dart';
 
 import '../support/auth_fakes.dart';
 import '../support/map_fakes.dart';
+import '../support/composer_fakes.dart';
 
 void main() {
   testWidgets(
@@ -26,6 +27,9 @@ void main() {
             authRepository: repository,
             location: TestLocation(),
             tiles: TestTiles.new,
+            draftStore: MemoryDrafts(),
+            photoSelection: QueuePhotos(),
+            photoStorage: MemoryPhotos(),
           ),
         );
         await tester.pumpAndSettle();
@@ -52,7 +56,7 @@ void main() {
         await tester.tap(find.text('Guardar nombre'));
         await tester.pumpAndSettle();
         expect(find.text('Crear reporte'), findsOneWidget);
-        expect(find.textContaining('Tu sesión está lista'), findsOneWidget);
+        expect(find.text('Título'), findsOneWidget);
         expect(gateway.signIns, 1);
         await tester.tap(find.byIcon(Icons.person_outline));
         await tester.pumpAndSettle();

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../shared/widgets/project_shell.dart';
@@ -17,6 +18,11 @@ import '../features/auth/presentation/auth_pages.dart';
 import '../features/auth/presentation/auth_route_guard.dart';
 import '../features/profile/domain/my_reports_repository.dart';
 import '../features/profile/presentation/profile_page.dart';
+import '../core/media/photo_storage.dart';
+import '../core/media/photo_selection.dart';
+import '../features/reports/data/report_draft_store.dart';
+import '../features/reports/domain/report_repository.dart';
+import '../features/reports/presentation/new_report_page.dart';
 
 GoRouter createAppRouter(
   CategoryRepository categories,
@@ -28,6 +34,10 @@ GoRouter createAppRouter(
   required AuthCubit auth,
   required AuthRouterRefresh authRefresh,
   required MyReportsRepository myReports,
+  required ReportRepository writeReports,
+  required PhotoStorage storage,
+  required PhotoSelection selection,
+  required ReportDraftStore drafts,
   TileProviderFactory tiles = MapTiles.create,
 }) {
   return GoRouter(
@@ -65,10 +75,27 @@ GoRouter createAppRouter(
           ),
           GoRoute(
             path: '/nuevo',
-            builder: (_, _) => const FoundationPage(
-              title: 'Crear reporte',
-              icon: Icons.add_location_alt_outlined,
-              message: 'Tu sesión está lista. El formulario para registrar problemas estará disponible en la próxima versión.',
+            builder: (context, _) => BlocBuilder<AuthCubit, AuthState>(
+              bloc: auth,
+              builder: (context, session) {
+                if (session.user == null) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return NewReportPage(
+                  key: ValueKey(session.user!.uid),
+                  auth: auth,
+                  categories: categories,
+                  reports: writeReports,
+                  storage: storage,
+                  selection: selection,
+                  drafts: drafts,
+                  reader: photos,
+                  location: location,
+                  tiles: tiles,
+                  onSaved: (id) =>
+                      context.go('/reporte/${Uri.encodeComponent(id)}'),
+                );
+              },
             ),
           ),
           GoRoute(

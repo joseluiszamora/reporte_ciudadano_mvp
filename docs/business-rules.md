@@ -44,6 +44,10 @@ título 10–100, descripción 20–2.000, notas y motivos 10–1.000 caracteres
 Entre 1 y 5 fotos por reporte; cada foto entre 1 byte y 10 MiB. JPEG, PNG o WebP;
 validar decodificación real y retirar EXIF innecesario. Evidencia de solución: una
 foto con los mismos límites. Latitud [-90,90], longitud [-180,180], valores finitos.
+En alta se aceptan JPEG/PNG/WebP recibidos del selector, con hasta 20 megapíxeles
+antes de procesar. Se corrige orientación, reduce el lado mayor a 2048 px y guarda
+JPEG al 85 %, sin copiar EXIF/GPS/perfiles al archivo persistente. Los archivos
+originales del usuario permanecen intactos.
 Sin geocerca restrictiva. Advertir a más de 30 km del centro aproximado
 (-16.5000, -68.1500); esto no representa límites oficiales.
 
@@ -75,7 +79,27 @@ Primera autenticación requiere Internet; sesión persistida permite trabajo loc
 si sigue disponible. No prometer renovar credenciales sin conexión. Mapas sin red
 no bloquean lista local. Denegar GPS permite pin manual. Reinstalar puede perder datos.
 
-## Búsqueda
+## Borradores y fotografías (TASK-006)
+
+El borrador es privado y se guarda por UID al cambiar campos o fotos. Cambiar de
+cuenta reconstruye el formulario y carga únicamente el borrador correspondiente.
+No se crea un reporte antes de confirmar la vista previa. Antes de abrir cámara o
+galería se conserva el borrador y la cuenta asociada al selector. Los resultados
+que Android recupere tras interrumpir la actividad solo se adjuntan a esa cuenta.
+
+La publicación conserva un UUID estable del borrador. Reintentar el mismo UUID
+devuelve el reporte ya creado para ese autor y no duplica fotos, historial ni
+auditoría. Un UUID de otro autor o de un reporte eliminado no permite recrearlo.
+Un fallo SQL mantiene el borrador y las copias privadas para reintentar; un fallo
+de foto informa «Vuelve a adjuntarla» y no guarda un reporte incompleto.
+
+Quitar una foto o descartar un borrador elimina solo copias sin referencias.
+Nunca eliminar fotos usadas por reportes, propuestas o versiones históricas,
+incluidos reportes eliminados lógicamente. No se garantiza respaldo del borrador
+ni recuperación tras borrar datos de la app. Copias parciales de procesos
+interrumpidos pueden permanecer privadas hasta una limpieza futura controlada.
+
+## Búsqueda local
 
 TASK-004 incluye búsqueda local de título y descripción, sin distinguir mayúsculas,
 combinada con filtros de categoría, estado y fechas. Mapa y lista comparten consulta.

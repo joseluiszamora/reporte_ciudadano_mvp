@@ -27,9 +27,12 @@ sesión, rutas protegidas y Mis reportes. **Falta crear y configurar el proyecto
 Firebase para usar cuentas reales**; sin configuración se puede explorar como
 visitante. Ver [configuración Firebase](docs/firebase-setup.md).
 
-Todavía no incluye el formulario de alta, captura de fotos, revisión administrativa
-ni estadísticas. El CRUD se encuentra
-en la capa de datos y se verifica mediante pruebas. No contiene usuarios ni
+El formulario de alta incluye categoría, título, descripción, cámara/galería,
+ubicación corregible, anonimato y vista previa antes de publicar. Guarda las fotos
+en privado como JPEG de hasta 2048 px y retira metadatos; conserva borradores por
+cuenta y evita duplicados al reintentar. Requiere sesión Google y nombre público.
+
+Todavía no incluye revisión administrativa ni estadísticas. No contiene usuarios ni
 credenciales de demostración que aparenten autenticación real.
 
 ## Ejecutar y verificar
