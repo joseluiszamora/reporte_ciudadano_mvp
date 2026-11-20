@@ -27,6 +27,9 @@ import '../features/reports/presentation/report_management_page.dart';
 import '../features/reports/domain/resolution_repository.dart';
 import '../core/audit/audit_repository.dart';
 import '../core/audit/audit_page.dart';
+import '../features/statistics/domain/statistics_repository.dart';
+import '../features/statistics/presentation/statistics_filter_cubit.dart';
+import '../features/statistics/presentation/statistics_page.dart';
 
 GoRouter createAppRouter(
   CategoryRepository categories,
@@ -41,6 +44,8 @@ GoRouter createAppRouter(
   required ReportRepository writeReports,
   required ResolutionRepository resolutions,
   required AuditRepository audit,
+  required StatisticsRepository statistics,
+  required StatisticsFilterCubit statisticsFilters,
   required PhotoStorage storage,
   required PhotoSelection selection,
   required ReportDraftStore drafts,
@@ -106,10 +111,11 @@ GoRouter createAppRouter(
           ),
           GoRoute(
             path: '/estadisticas',
-            builder: (_, _) => const FoundationPage(
-              title: 'Estadísticas locales',
-              icon: Icons.bar_chart_outlined,
-              message: 'Los indicadores se incorporarán en TASK-008. Los datos de este teléfono no representan a toda la ciudad.',
+            builder: (context, _) => StatisticsPage(
+              repository: statistics,
+              categories: categories,
+              filters: statisticsFilters,
+              onCreate: () => context.go('/nuevo'),
             ),
           ),
           GoRoute(

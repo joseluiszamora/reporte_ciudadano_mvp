@@ -15,7 +15,7 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 | categories | CategoryRepository | SqliteCategoryRepository | Catálogo y selector del formulario implementados |
 | reports | ReportPolicy, ReportRepository, ReportReadRepository, ReportComposition, ResolutionRepository | Repositorios SQLite, PrivateReportDraftStore | Lista, detalle, alta, edición y gestión implementados |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
-| statistics | Cálculos y filtros pendientes | Consultas SQLite | Indicadores locales |
+| statistics | StatisticsFilter, LocalStatistics, StatisticsGroup | SqliteStatisticsRepository | StatisticsPage y filtros independientes implementados |
 | profile | Usuario autenticado, MyReportsRepository | AuthRepository, SqliteMyReportsRepository | Nombre, logout y Mis reportes implementados |
 
 ## Persistencia
@@ -204,3 +204,41 @@ escapa separadores/comillas y neutraliza fórmulas de hojas de cálculo. No escr
 archivos externos ni comparte automáticamente información privada. Los filtros
 permiten acotar períodos para consultas mayores. No hay sincronización ni app web
 administrativa todavía.
+
+## Estadísticas (TASK-008)
+
+`SqliteStatisticsRepository` publica agregados públicos de todas las cuentas de este
+teléfono, sin seleccionar UID, título, correo, notas ni fotografías. Una consulta
+une reportes con categorías, excluye eliminación lógica y filtra categoría/origen
+mediante parámetros. Evita unir fotos o propuestas para no multiplicar conteos.
+Las fechas se comparan como instantes Dart, conservando límites inclusivo/exclusivo
+con timestamps ISO de distinta precisión. El procesamiento es en memoria para el
+MVP local; bases grandes requerirán agregación/paginación en otro adaptador.
+
+Los conteos, categorías y tiempos locales nunca se mezclan con demostración.
+`LocalStatistics.demo` solo existe cuando el usuario lo solicita; incluso vacío
+tiene su propia sección y aviso. Categorías históricas inactivas conservan sus
+conteos. El filtro de fechas se refiere a creación y admite intervalos abiertos
+en el contrato; la UI convierte los días elegidos a UTC, hasta medianoche del día
+siguiente al final.
+
+Pendientes son Reportado y En seguimiento. Su media y máximo se calculan desde
+creación hasta el instante `asOf`. Resolución usa creación hasta `resolved_at`
+solo para reportes actualmente solucionados; una reapertura los saca de la muestra
+y una nueva aprobación usa la última resolución. No se promedian eventos del
+historial. Duraciones negativas por reloj retrasado se acotan a cero. Una media
+sin muestra es nula y la UI la distingue de una medición de cero.
+
+El repositorio se suscribe antes de leer y serializa recargas por commits de
+reportes/categorías y por un temporizador de un minuto. La cancelación libera
+notificaciones y temporizador; cambios SQL abortados no generan indicadores nuevos.
+Los constructores permiten inyectar reloj y ticks para verificar tiempos sin esperas.
+Las suscripciones de la pantalla están fuera del contenido desplazable para
+mantenerse al recorrer filtros, gráficos y resultados.
+
+`StatisticsFilterCubit` vive durante la sesión de la app, conserva categoría,
+período y opción demo al navegar y se reinicia al relanzar. Es independiente de
+`ReportFilterCubit`. La pantalla reemplaza resultados por un estado de carga al
+cambiar filtros, ofrece reintento ante error y mantiene conteos cero con acceso
+a Crear cuando no hay datos. El aviso «Estadísticas locales; no representan a
+toda la ciudad» permanece explícito; no se presenta como evaluación institucional.

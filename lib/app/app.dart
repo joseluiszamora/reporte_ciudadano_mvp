@@ -32,6 +32,8 @@ import '../features/reports/data/report_media_references.dart';
 import '../features/reports/data/sqlite_report_repository.dart';
 import '../features/reports/data/sqlite_resolution_repository.dart';
 import '../core/audit/sqlite_audit_repository.dart';
+import '../features/statistics/data/sqlite_statistics_repository.dart';
+import '../features/statistics/presentation/statistics_filter_cubit.dart';
 
 class CitizenReportsApp extends StatefulWidget {
   const CitizenReportsApp({
@@ -61,6 +63,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
   late final AppDatabase db;
   late final GoRouter router;
   final filters = ReportFilterCubit();
+  final statisticsFilters = StatisticsFilterCubit();
   late final AuthRepository repository;
   late final AuthCubit auth;
   late final AuthRouterRefresh authRefresh;
@@ -90,6 +93,8 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
       writeReports: SqliteReportRepository(db, session, storage),
       resolutions: SqliteResolutionRepository(db, session, storage),
       audit: SqliteAuditRepository(db, session),
+      statistics: SqliteStatisticsRepository(db),
+      statisticsFilters: statisticsFilters,
       storage: storage,
       selection: widget.photoSelection ?? AndroidPhotoSelection(),
       drafts: widget.draftStore ?? PrivateReportDraftStore(),
@@ -103,6 +108,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
     router.dispose();
     authRefresh.dispose();
     filters.close();
+    statisticsFilters.close();
     unawaited(
       auth.close().then((_) async {
         if (widget.authRepository == null) await repository.close();

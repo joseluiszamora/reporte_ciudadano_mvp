@@ -39,8 +39,11 @@ y conserva las resoluciones anteriores. El borrado es lógico y no elimina evide
 En Perfil, el admin puede consultar el informe privado de acciones, filtrar por
 actor/acción/entidad/fecha/origen y copiar los resultados como CSV.
 
-Las estadísticas siguen pendientes. No contiene usuarios ni credenciales de
-demostración que aparenten autenticación real.
+Estadísticas muestra totales por estado y categoría, antigüedad media/máxima de
+pendientes y promedio de resolución. Permite filtrar por categoría y fechas de
+creación; los datos demo se incluyen solo al solicitarlo y se muestran aparte.
+Los indicadores son públicos, locales a este teléfono y excluyen eliminados.
+No contiene usuarios ni credenciales de demostración que aparenten autenticación real.
 
 ## Ejecutar y verificar
 

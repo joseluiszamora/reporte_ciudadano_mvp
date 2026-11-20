@@ -125,3 +125,28 @@ abierta; la UI lo informa. Sus fotos nuevas usan las mismas comprobaciones priva
 del alta. Al salir se intenta retirar únicamente copias sin referencias; reportes,
 evidencias enviadas y versiones anteriores permanecen protegidos. La recuperación
 persistente de borradores de TASK-006 se aplica al alta, no a estos formularios.
+
+## Indicadores locales (TASK-008)
+
+Se consultan sin sesión y abarcan los reportes de todas las cuentas guardadas en
+el teléfono. Excluir reportes eliminados de conteos, categorías y tiempos. Por
+defecto no se leen datos demo; al activarlos se muestran conteos y promedios en una
+sección separada, identificada como demostración, sin sumarlos a los reales.
+
+Filtros: categoría (incluidas históricas inactivas) y fecha de creación. Los días
+seleccionados son locales y se convierten a instantes UTC: inicio inclusivo y
+medianoche posterior al día final exclusiva. Se conservan al navegar durante la
+sesión, con opción de restablecer; no modifican filtros del mapa/lista.
+
+Pendiente = Reportado o En seguimiento. La antigüedad media y máxima cuentan desde
+creación hasta el momento del cálculo y se actualizan cada minuto o al cambiar
+datos. Promedio de resolución = media de `resolved_at - created_at` de los reportes
+actualmente solucionados dentro de los filtros. Reabrir retira ese reporte del
+promedio; aprobar nuevamente usa su última resolución y conserva creación como
+inicio. No contar propuestas pendientes como soluciones ni promediar resoluciones
+históricas. Acotar a cero ante reloj retrasado; sin muestra, indicar su ausencia.
+
+Cada reporte cuenta una sola vez aunque tenga varias fotos/propuestas. Categorías
+se muestran con conteo legible y barra proporcional al total de su sección.
+Base vacía muestra ceros y acceso a Crear, que exige login para publicar. No se
+asignan instituciones ni se generan calificaciones de atención institucional.
