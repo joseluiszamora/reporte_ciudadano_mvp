@@ -16,7 +16,7 @@ conservan al cambiar al mapa. El catálogo está en «Ver categorías».
 La pestaña Mapa incorpora OpenStreetMap centrado en El Alto, marcadores de los
 reportes locales por categoría/estado y acceso al detalle al pulsarlos. «Elegir ubicación»
 abre el selector: toque para colocar/corregir el pin, coordenadas manuales y GPS
-opcional. El punto se devuelve al mapa; todavía no crea ni guarda un reporte.
+opcional. El alta usa el mismo selector y guarda el punto al confirmar la publicación.
 
 El detalle incluye autor público o anónimo, galería ampliable, mapa, fechas,
 tiempos e historial con propuestas. Si falta una foto, muestra un aviso y permite
@@ -32,8 +32,15 @@ ubicación corregible, anonimato y vista previa antes de publicar. Guarda las fo
 en privado como JPEG de hasta 2048 px y retira metadatos; conserva borradores por
 cuenta y evita duplicados al reintentar. Requiere sesión Google y nombre público.
 
-Todavía no incluye revisión administrativa ni estadísticas. No contiene usuarios ni
-credenciales de demostración que aparenten autenticación real.
+Desde el detalle, «Acciones y propuestas» permite enviar evidencia de solución,
+editar y eliminar según permisos. El admin inicia seguimiento, aprueba/rechaza
+propuestas y reabre reportes con motivo. La aprobación resuelve en una transacción
+y conserva las resoluciones anteriores. El borrado es lógico y no elimina evidencia.
+En Perfil, el admin puede consultar el informe privado de acciones, filtrar por
+actor/acción/entidad/fecha/origen y copiar los resultados como CSV.
+
+Las estadísticas siguen pendientes. No contiene usuarios ni credenciales de
+demostración que aparenten autenticación real.
 
 ## Ejecutar y verificar
 

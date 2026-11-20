@@ -18,11 +18,13 @@ class ReportDetailPage extends StatefulWidget {
     required this.repository,
     required this.photos,
     this.tiles = MapTiles.create,
+    this.onManage,
   });
   final String id;
   final ReportReadRepository repository;
   final LocalPhotoReader photos;
   final TileProviderFactory tiles;
+  final VoidCallback? onManage;
   @override
   State<ReportDetailPage> createState() => _ReportDetailPageState();
 }
@@ -109,6 +111,12 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             Text('Autor: ${report.publicAuthor}'),
             Text(view.category),
             Text('Estado: ${ReportLabels.status(report.status)}'),
+            if (widget.onManage != null)
+              OutlinedButton.icon(
+                onPressed: widget.onManage,
+                icon: const Icon(Icons.fact_check_outlined),
+                label: const Text('Acciones y propuestas'),
+              ),
             Text('Creado: ${ReportLabels.date(report.createdAt)}'),
             Text('Actualizado: ${ReportLabels.date(report.updatedAt)}'),
             if (report.resolvedAt != null)

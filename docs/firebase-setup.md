@@ -50,7 +50,7 @@ para promover usuarios. Tras asignarlo, cerrar sesión y entrar de nuevo.
 
 Si no se pueden consultar los claims por falta de conexión, no se concede admin;
 una identidad persistida puede seguir usando funciones locales como ciudadano.
-La administración de reportes se implementará en TASK-007. El backend futuro
+La administración local de reportes está implementada en TASK-007. El backend futuro
 deberá validar nuevamente permisos en servidor: SQLite no reemplaza esa validación.
 
 ## Comprobación real pendiente

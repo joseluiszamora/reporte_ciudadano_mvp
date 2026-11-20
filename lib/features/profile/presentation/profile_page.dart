@@ -7,6 +7,7 @@ import '../../auth/presentation/auth_pages.dart';
 import '../../reports/domain/report_read_repository.dart';
 import '../../reports/presentation/report_labels.dart';
 import '../domain/my_reports_repository.dart';
+import '../../reports/domain/report_policy.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key, required this.auth, required this.reports});
@@ -45,6 +46,12 @@ class ProfilePage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           ProfileHeader(user: user, auth: auth),
+          if (ReportPolicy.canManage(user))
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_outlined),
+              title: const Text('Informe de acciones'),
+              onTap: () => context.push('/acciones'),
+            ),
           const Divider(),
           Text('Mis reportes', style: Theme.of(context).textTheme.titleLarge),
           _MyReports(key: ValueKey(user.uid), reports: reports),

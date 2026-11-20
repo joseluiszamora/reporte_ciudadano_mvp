@@ -17,8 +17,14 @@ class AuthRouterRefresh extends ChangeNotifier {
   }
 }
 
-String safeAuthReturn(String? value) =>
-    value == '/nuevo' ? '/nuevo' : '/perfil';
+String safeAuthReturn(String? value) {
+  if (value == '/nuevo' || value == '/acciones') return value!;
+  if (value != null &&
+      RegExp(r'^/gestionar/[a-zA-Z0-9-]{1,80}$').hasMatch(value)) {
+    return value;
+  }
+  return '/perfil';
+}
 
 String? authRedirect(AuthState auth, Uri uri) {
   final path = uri.path;
@@ -40,18 +46,23 @@ String? authRedirect(AuthState auth, Uri uri) {
     }
     return complete ? target : null;
   }
-  if (path == '/nuevo') {
+  if (path == '/nuevo' ||
+      path == '/acciones' ||
+      path.startsWith('/gestionar/')) {
     if (auth.user == null) {
       return Uri(
         path: '/acceso',
-        queryParameters: {'volver': '/nuevo'},
+        queryParameters: {'volver': safeAuthReturn(path)},
       ).toString();
     }
     if (!complete) {
       return Uri(
         path: '/nombre',
-        queryParameters: {'volver': '/nuevo'},
+        queryParameters: {'volver': safeAuthReturn(path)},
       ).toString();
+    }
+    if (path == '/acciones' && !ReportPolicy.canManage(auth.user)) {
+      return '/perfil';
     }
   }
   return null;

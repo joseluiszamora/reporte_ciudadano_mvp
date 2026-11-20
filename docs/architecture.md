@@ -13,7 +13,7 @@ No se crean adaptadores vacíos ni servicios que aparenten autenticación real.
 |---|---|---|---|
 | auth | AppUser, AuthRepository | FirebaseGoogleGateway, GoogleAuthRepository, LocalUserStore | Login y nombre público implementados; falta configurar Firebase |
 | categories | CategoryRepository | SqliteCategoryRepository | Catálogo y selector del formulario implementados |
-| reports | ReportPolicy, ReportRepository, ReportReadRepository, ReportComposition, ResolutionRepository | Repositorios SQLite, PrivateReportDraftStore | Lista, detalle y alta implementados; administración pendiente |
+| reports | ReportPolicy, ReportRepository, ReportReadRepository, ReportComposition, ResolutionRepository | Repositorios SQLite, PrivateReportDraftStore | Lista, detalle, alta, edición y gestión implementados |
 | map | GeoPoint, LocationGateway, MapReportRepository | GeolocatorGateway, SqliteMapReportRepository, caché de teselas | CityMapPage y LocationPickerPage implementados |
 | statistics | Cálculos y filtros pendientes | Consultas SQLite | Indicadores locales |
 | profile | Usuario autenticado, MyReportsRepository | AuthRepository, SqliteMyReportsRepository | Nombre, logout y Mis reportes implementados |
@@ -39,8 +39,7 @@ permite seleccionar rol. `LocalSession` toma el UID del adaptador de sesión y l
 el rol desde SQLite para cada operación. Las pruebas usan sesiones y almacén de
 fotos controlados; no hay acceso simulado expuesto en la aplicación.
 
-La pestaña Reportes abre la base y muestra el catálogo persistente. Las pantallas
-de lista y formulario se mantienen para sus próximas tareas. `watchQuery` registra
+La pestaña Reportes consulta la base y ofrece el catálogo persistente. `watchQuery` registra
 suscripciones antes de consultar y recibe notificaciones de Drift al confirmar
 transacciones; los cambios abortados no se publican.
 
@@ -167,3 +166,41 @@ usuario ni un botón de UI para dar rol admin.
 En esta fase local, un administrador gestionará solo los datos de su teléfono.
 La app web futura necesitará API y datos compartidos antes de aprobar reportes
 de otros dispositivos.
+
+## Administración y auditoría (TASK-007)
+
+`SqliteResolutionRepository` carga una proyección privada para la sesión actual:
+permisos sobre el reporte, datos de edición y propuestas propias (todas para admin).
+El detalle público conserva su proyección sin UID/correo. Las rutas protegidas
+mantienen el destino de gestión durante login/nombre y restringen el informe a admin.
+Las pantallas reconstruyen o esconden su contenido al cambiar de cuenta o rol.
+
+Proponer exige nota, evidencia privada existente y un UUID de solicitud; una sola
+propuesta pendiente por usuario/reporte. El UUID permite repetir una solicitud ya
+confirmada sin duplicar propuesta ni evento. La aprobación verifica admin, reporte
+visible, propuesta pendiente y evidencia. En una única transacción guarda revisión,
+aprobación, rechazos de otras pendientes, resolved_at UTC, estado, historial y
+eventos. Cualquier fallo de auditoría revierte todo. Rechazar no cambia el reporte.
+Reabrir conserva aprobaciones anteriores, vacía resolved_at y exige nueva propuesta
+para resolver otra vez. Los cambios de estado y edición invalidan revisiones antiguas.
+
+`ReportDao.saveRevision` se comparte entre edición, estados y borrado lógico. Las
+fotos reemplazadas conservan referencias históricas y generan PHOTO_REPLACED además
+de REPORT_UPDATED. Eliminar nunca elimina archivos ni propuestas.
+
+`ReportManagementPage` ofrece seguimiento, propuesta y revisión con motivo;
+`EditReportPage` edita campos, categoría, ubicación, atribución y fotografías. Sus
+cambios sin confirmar son temporales, a diferencia del borrador persistente de alta.
+El marcador de selección de gestión se distingue del marcador de alta para no
+adjuntar resultados perdidos al formulario equivocado. No se promete recuperar
+ediciones ni propuestas sin enviar después de que Android cierre el proceso.
+
+`SqliteAuditRepository` consulta eventos con parámetros y exige admin en cada
+lectura. Incluye entidades eliminadas; devuelve hasta 500 filas recientes por
+consulta, con orden estable. `AuditPage` agrupa las filas mostradas por acción,
+actor y tipo de entidad; filtra fechas locales como intervalo UTC semiabierto.
+La exportación consiste en CSV seleccionable/copiable de los resultados visibles;
+escapa separadores/comillas y neutraliza fórmulas de hojas de cálculo. No escribe
+archivos externos ni comparte automáticamente información privada. Los filtros
+permiten acotar períodos para consultas mayores. No hay sincronización ni app web
+administrativa todavía.

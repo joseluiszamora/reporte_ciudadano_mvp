@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -197,7 +195,7 @@ class SqliteReportRepository implements ReportRepository {
       ],
     );
     await _insertImages(id, draft, now);
-    await _saveRevision(id, actor, now);
+    await dao.saveRevision(id, actor, now);
     await db.customStatement(
       '''INSERT INTO report_status_history(id,report_id,to_status,actor_uid,note,created_at)
       VALUES(?,?,?,?,?,?)''',
@@ -295,7 +293,7 @@ class SqliteReportRepository implements ReportRepository {
     ];
     if (fields.isEmpty) return;
     session.ensureCurrent(actor);
-    await _saveRevision(reportId, actor, now);
+    await dao.saveRevision(reportId, actor, now);
     await db.customStatement(
       '''UPDATE reports SET category_id=?,title=?,description=?,latitude=?,longitude=?,address_label=?,
       public_identity_mode=?,public_name_snapshot=?,updated_at=?,revision=revision+1 WHERE id=?''',
@@ -321,7 +319,7 @@ class SqliteReportRepository implements ReportRepository {
       ]);
       await _insertImages(reportId, draft, now);
     }
-    await _saveRevision(reportId, actor, now);
+    await dao.saveRevision(reportId, actor, now);
     await audit.append(
       actor: actor,
       action: 'REPORT_UPDATED',
@@ -332,7 +330,24 @@ class SqliteReportRepository implements ReportRepository {
       reason: reason.trim(),
       isDemo: before.isDemo,
     );
-    db.changed({'reports', 'report_images', 'audit_events'});
+    if (fields.contains('photos')) {
+      await audit.append(
+        actor: actor,
+        action: 'PHOTO_REPLACED',
+        entityType: 'report',
+        entityId: reportId,
+        at: now,
+        changedFields: ['photos'],
+        reason: reason.trim(),
+        isDemo: before.isDemo,
+      );
+    }
+    db.changed({
+      'reports',
+      'report_images',
+      'report_revisions',
+      'audit_events',
+    });
   });
 
   bool _samePhotos(List<StoredPhoto> a, List<StoredPhoto> b) =>
@@ -343,39 +358,6 @@ class SqliteReportRepository implements ReportRepository {
             entry.$2.bytes == b[entry.$1].bytes &&
             entry.$2.mimeType == b[entry.$1].mimeType,
       );
-
-  Future<void> _saveRevision(
-    String reportId,
-    AppUser actor,
-    DateTime at,
-  ) async {
-    final row = await db
-        .customSelect(
-          'SELECT * FROM reports WHERE id=?',
-          variables: [Variable.withString(reportId)],
-        )
-        .getSingle();
-    final images = await db
-        .customSelect(
-          'SELECT local_relative_path,mime_type,byte_size,sort_order FROM report_images WHERE report_id=? ORDER BY sort_order',
-          variables: [Variable.withString(reportId)],
-        )
-        .get();
-    await db.customStatement(
-      '''INSERT OR IGNORE INTO report_revisions(report_id,revision,snapshot_json,changed_by_uid,created_at)
-      VALUES(?,?,?,?,?)''',
-      [
-        reportId,
-        row.read<int>('revision'),
-        jsonEncode({
-          'report': row.data,
-          'images': images.map((image) => image.data).toList(),
-        }),
-        actor.uid,
-        at.toIso8601String(),
-      ],
-    );
-  }
 
   Future<LocalReportRow> _requireReport(String id) async {
     final row = await dao.find(id);
@@ -402,7 +384,7 @@ class SqliteReportRepository implements ReportRepository {
         _requireReason(reason);
         final now = clock().toUtc();
         session.ensureCurrent(actor);
-        await _saveRevision(reportId, actor, now);
+        await dao.saveRevision(reportId, actor, now);
         await db.customStatement(
           '''UPDATE reports SET deleted_at=?,deleted_by_uid=?,deletion_reason=?,updated_at=?,revision=revision+1 WHERE id=?''',
           [
@@ -413,7 +395,7 @@ class SqliteReportRepository implements ReportRepository {
             reportId,
           ],
         );
-        await _saveRevision(reportId, actor, now);
+        await dao.saveRevision(reportId, actor, now);
         await audit.append(
           actor: actor,
           action: 'REPORT_DELETED',

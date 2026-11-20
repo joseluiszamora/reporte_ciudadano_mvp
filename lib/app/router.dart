@@ -23,6 +23,10 @@ import '../core/media/photo_selection.dart';
 import '../features/reports/data/report_draft_store.dart';
 import '../features/reports/domain/report_repository.dart';
 import '../features/reports/presentation/new_report_page.dart';
+import '../features/reports/presentation/report_management_page.dart';
+import '../features/reports/domain/resolution_repository.dart';
+import '../core/audit/audit_repository.dart';
+import '../core/audit/audit_page.dart';
 
 GoRouter createAppRouter(
   CategoryRepository categories,
@@ -35,6 +39,8 @@ GoRouter createAppRouter(
   required AuthRouterRefresh authRefresh,
   required MyReportsRepository myReports,
   required ReportRepository writeReports,
+  required ResolutionRepository resolutions,
+  required AuditRepository audit,
   required PhotoStorage storage,
   required PhotoSelection selection,
   required ReportDraftStore drafts,
@@ -114,12 +120,35 @@ GoRouter createAppRouter(
       ),
       GoRoute(
         path: '/reporte/:id',
-        builder: (_, state) => ReportDetailPage(
+        builder: (context, state) => ReportDetailPage(
           id: state.pathParameters['id']!,
           repository: readReports,
           photos: photos,
           tiles: tiles,
+          onManage: () => context.push(
+            '/gestionar/${Uri.encodeComponent(state.pathParameters['id']!)}',
+          ),
         ),
+      ),
+      GoRoute(
+        path: '/gestionar/:id',
+        builder: (_, state) => ReportManagementPage(
+          id: state.pathParameters['id']!,
+          auth: auth,
+          resolutions: resolutions,
+          reports: writeReports,
+          storage: storage,
+          selection: selection,
+          drafts: drafts,
+          reader: photos,
+          categories: categories,
+          location: location,
+          tiles: tiles,
+        ),
+      ),
+      GoRoute(
+        path: '/acciones',
+        builder: (_, _) => AuditPage(auth: auth, repository: audit),
       ),
       GoRoute(
         path: '/acceso',

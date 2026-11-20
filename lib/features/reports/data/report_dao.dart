@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
 import '../../../core/media/photo_storage.dart';
+import '../../auth/domain/app_user.dart';
 import '../domain/report_policy.dart';
 import '../domain/report_repository.dart';
 
@@ -53,6 +56,35 @@ class LocalReportRow {
 class ReportDao {
   ReportDao(this.db);
   final AppDatabase db;
+
+  Future<void> saveRevision(String reportId, AppUser actor, DateTime at) async {
+    final row = await db
+        .customSelect(
+          'SELECT * FROM reports WHERE id=?',
+          variables: [Variable.withString(reportId)],
+        )
+        .getSingle();
+    final images = await db
+        .customSelect(
+          'SELECT local_relative_path,mime_type,byte_size,sort_order FROM report_images WHERE report_id=? ORDER BY sort_order',
+          variables: [Variable.withString(reportId)],
+        )
+        .get();
+    await db.customStatement(
+      '''INSERT OR IGNORE INTO report_revisions(report_id,revision,snapshot_json,changed_by_uid,created_at)
+      VALUES(?,?,?,?,?)''',
+      [
+        reportId,
+        row.read<int>('revision'),
+        jsonEncode({
+          'report': row.data,
+          'images': images.map((image) => image.data).toList(),
+        }),
+        actor.uid,
+        at.toUtc().toIso8601String(),
+      ],
+    );
+  }
 
   Future<LocalReportRow?> find(String id) async {
     final row = await db

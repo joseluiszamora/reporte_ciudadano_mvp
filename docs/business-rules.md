@@ -67,7 +67,10 @@ Los cambios persistentes y su evento se guardan en una transacción.
 El historial conserva estados antes/después y vínculo a propuesta. No registrar
 tokens, credenciales, bytes de fotos ni correos en auditoría. El adaptador no
 expondrá actualización/eliminación de eventos. Informes administrativos podrán
-agrupar por actor, acción, fecha y entidad; el visor/exportador se implementa en TASK-007.
+agrupar por actor, acción, fecha y entidad. TASK-007 incluye visor privado y CSV
+copiable de hasta 500 eventos recientes por consulta; los totales resumen solo
+esas filas. Permite filtrar por UID, acción, entidad, fechas y origen demo, incluso
+para reportes eliminados. Las fechas del informe son días locales y el CSV conserva UTC.
 
 ## Datos locales y demostración
 
@@ -103,3 +106,22 @@ interrumpidos pueden permanecer privadas hasta una limpieza futura controlada.
 
 TASK-004 incluye búsqueda local de título y descripción, sin distinguir mayúsculas,
 combinada con filtros de categoría, estado y fechas. Mapa y lista comparten consulta.
+
+## Gestión local (TASK-007)
+
+«Acciones y propuestas» requiere sesión y nombre completo. Ciudadanos ven sus
+propias propuestas en gestión; el admin ve todas. El historial público sigue sin
+identificadores internos de autores o proponentes. El admin accede al informe de
+acciones desde Perfil. Los permisos se verifican en cada repositorio y no dependen
+de que el botón esté visible. No se crea una cuenta admin sin identidad verificada.
+
+La edición comprueba la revisión cargada para impedir sobrescrituras. El cambio
+de estado también usa revisión esperada; resolver directamente está prohibido y
+requiere aprobar evidencia. Se registra un evento por cada propuesta sustituida.
+El identificador estable de envío evita duplicar una propuesta al reintentar.
+
+Ediciones y propuestas sin enviar se conservan solo mientras la pantalla siga
+abierta; la UI lo informa. Sus fotos nuevas usan las mismas comprobaciones privadas
+del alta. Al salir se intenta retirar únicamente copias sin referencias; reportes,
+evidencias enviadas y versiones anteriores permanecen protegidos. La recuperación
+persistente de borradores de TASK-006 se aplica al alta, no a estos formularios.

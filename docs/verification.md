@@ -1,58 +1,42 @@
-# Verificación de TASK-006
+# Verificación de TASK-007
 
-- `flutter test --no-pub --concurrency=1 --reporter=expanded`: 80 pruebas aprobadas.
+- Suite completa: `flutter test --no-pub --concurrency=1 --reporter=expanded`: 101 pruebas aprobadas (80 anteriores y 21 nuevas).
 - `flutter analyze --no-pub`: sin problemas.
-- `flutter build apk --debug --no-pub`: APK compilado correctamente.
-- Formato Dart verificado.
+- `flutter build apk --debug --no-pub`: APK de depuración compilado.
+- Formato Dart y diferencias Git verificados.
 
-## Funcionalidad
+## Funcionalidad entregada
 
-Formulario protegido con categoría, título, descripción, hasta cinco fotografías,
-ubicación elegida/corregible, anonimato y vista previa. El reporte solo se guarda
-tras confirmar; se abre el detalle y se puede regresar al listado.
+Desde Detalle → Acciones y propuestas, el ciudadano envía nota y fotografía de solución sin resolver el reporte. Puede editar su reporte mientras esté Reportado y eliminarlo lógicamente con motivo. El admin edita cualquier reporte visible, inicia/devuelve seguimiento, revisa propuestas y reabre reportes resueltos.
 
-Las fotos se copian en almacenamiento privado, normalizadas como JPEG, con
-orientación corregida, lado máximo de 2048 px y sin metadatos transferidos. Se
-validan formato real, tamaño y dimensiones antes de devolver una ruta relativa.
+Aprobar actualiza propuesta, reporte, resolución UTC, revisiones, historial y auditoría en una transacción, rechazando las demás pendientes como sustituidas. Reabrir mantiene la resolución anterior en historial y exige nueva evidencia para aprobar otra vez. Se conservan fotos reemplazadas y reportes eliminados.
 
-Los borradores pertenecen a una cuenta y se conservan al cambiar de pantalla o
-reiniciar. El formulario se reconstruye al cambiar de UID; una cuenta no ve el
-borrador de otra. Los resultados perdidos del selector se recuperan al arrancar
-y solo se entregan al propietario del marcador de selección.
+En Perfil → Informe de acciones, el admin consulta eventos, incluidos los de reportes eliminados, por UID, acción, entidad, fecha y origen demo. Se resumen hasta 500 eventos recientes por consulta y se permite copiar CSV con las mismas filas. La exportación es texto privado para copiar/guardar, no un archivo enviado automáticamente ni una función de compartir.
 
-## Pruebas añadidas
+## Evidencia automatizada nueva
 
-- Campos obligatorios, mínimo de una foto y ubicación, revisión sin escribir SQL.
-- Importación fallida o archivo ausente: aviso para adjuntar de nuevo y ningún
-  reporte incompleto. Fallo de escritura: original intacto.
-- Decodificación, orientación EXIF, retirada de metadatos y persistencia tras
-  eliminar la fuente temporal. Reducción a 2048 px.
-- Referencias actuales, evidencias y versiones históricas protegidas de limpieza,
-  incluso después del borrado lógico del reporte.
-- Serialización de borradores, recuperación por UID, límite de fotos y descarte.
-- UUID estable: doble envío/reintento no duplica reporte, fotos, historial ni auditoría.
-- Fallo SQL conserva borrador y fotos. Reinicio después del commit recupera el
-  reporte creado aunque todavía no se haya podido eliminar el borrador.
-- Flujo de interfaz: retomar formulario, elegir coordenadas, adjuntar foto, revisar,
-  publicar anónimamente, abrir detalle y volver a lista.
-- Cambio entre dos cuentas completas no expone los campos del usuario anterior.
+- 12 pruebas del repositorio: permisos, perfil completo, evidencia obligatoria, UUID idempotente, límite de pendientes por usuario, aislamiento de propuestas, aprobación atómica, sustitución de pendientes y doble revisión impedida.
+- Fallo de auditoría revierte aprobación, rechazos, estado, historial y versiones.
+- Rechazo sin cambio de estado, reapertura y segunda resolución con evidencia nueva.
+- Revisión esperada, transición directa a Solucionado prohibida y reporte eliminado inaccesible para nuevas acciones. Se comprueba sesión tras verificar evidencia.
+- Revisiones demo y eventos identificados; falta de archivo impide aprobar.
+- 4 pruebas del informe: acceso admin, rol consultado en cada lectura, filtros y límites de fechas, parámetros SQL, conservación tras eliminación, límite de 500, CSV con comillas/saltos de línea y neutralización de fórmulas.
+- 3 pruebas de interfaz con SQLite y proveedores controlados: proponer como ciudadano, cambiar a admin, aprobar con motivo válido, reabrir y eliminar; editar título/foto conservando referencias históricas; consultar/exportar auditoría y ocultarla al cambiar a una cuenta ciudadana.
+- 2 pruebas de rutas: retorno seguro tras login/nombre y bloqueo del informe a ciudadanos.
 
-Los proveedores de identidad y selección simulados existen solo en tests. El APK
-exige Google/Firebase configurado y nombre público completo para entrar al formulario.
+Los proveedores simulados de identidad y fotos existen únicamente en tests. El APK no incluye una cuenta admin ficticia ni evita la autenticación Google.
 
-## Revisión manual pendiente
+## Aceptación manual pendiente
 
-1. Configurar Firebase según `docs/firebase-setup.md` e iniciar sesión en Android.
-2. Completar el formulario, tomar una foto, probar galería y cancelar selección.
-3. Denegar cámara o GPS y verificar alternativa por galería/pin/coordenadas.
-4. Revisar, volver a editar, publicar y comprobar foto y datos tras reiniciar.
-5. Interrumpir la actividad durante la cámara; comprobar recuperación del borrador
-   y resultado del selector para la misma cuenta.
-6. Cerrar sesión/cambiar de cuenta y comprobar aislamiento; volver a la cuenta original.
+1. Crear/configurar Firebase según `docs/firebase-setup.md`; confirmar login real.
+2. Probar la misma cuenta con y sin claim `admin`, incluyendo su retiro.
+3. Proponer con cámara/galería reales, cancelar y probar error de fotografía.
+4. Como ciudadano, verificar que no hay revisión administrativa; como admin, iniciar seguimiento, aprobar/rechazar con motivo y reabrir.
+5. Reiniciar y verificar estado, evidencia, historial y eventos conservados.
+6. Editar campos/fotos; eliminar y verificar exclusión de mapa/lista/detalle y conservación del evento privado de eliminación.
+7. Filtrar por fechas/actor/origen, copiar CSV y comprobarlo en el destino elegido.
+8. Cambiar de cuenta con gestión o informe abiertos y comprobar ocultación inmediata.
 
-Firebase real sigue pendiente por decisión confirmada del usuario. No se realizó
-prueba manual de cámara/galería ni recuperación de actividad en un teléfono durante
-esta entrega. Las pruebas automáticas no sustituyen esa aceptación final.
+No hay proyecto Firebase todavía, por confirmación del usuario. No se probaron claims, cámara ni galería en un teléfono real durante esta entrega. La aceptación manual permanece abierta. La administración es local al teléfono: la app web y el backend compartido siguen pendientes. Edición/propuesta sin enviar no son borradores persistentes; solo el alta cuenta con recuperación de TASK-006.
 
-Rama: `feature/TASK-006-alta-fotografias`. Los avances anteriores ya estaban en
-`3d4912d`; esta fase se guarda en otro commit local, sin push al remoto.
+Rama: `codex/TASK-007-administracion`. Base conservada en `e217550`; esta fase se guarda en un nuevo commit local, sin push al remoto.

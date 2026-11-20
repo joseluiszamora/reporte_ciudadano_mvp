@@ -30,6 +30,8 @@ import '../core/media/photo_selection.dart';
 import '../features/reports/data/report_draft_store.dart';
 import '../features/reports/data/report_media_references.dart';
 import '../features/reports/data/sqlite_report_repository.dart';
+import '../features/reports/data/sqlite_resolution_repository.dart';
+import '../core/audit/sqlite_audit_repository.dart';
 
 class CitizenReportsApp extends StatefulWidget {
   const CitizenReportsApp({
@@ -86,6 +88,8 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
       authRefresh: authRefresh,
       myReports: SqliteMyReportsRepository(db, session),
       writeReports: SqliteReportRepository(db, session, storage),
+      resolutions: SqliteResolutionRepository(db, session, storage),
+      audit: SqliteAuditRepository(db, session),
       storage: storage,
       selection: widget.photoSelection ?? AndroidPhotoSelection(),
       drafts: widget.draftStore ?? PrivateReportDraftStore(),
