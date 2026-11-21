@@ -38,7 +38,7 @@ Cinco pruebas de interfaz verifican:
 
 Los tests usan SQLite real en memoria, reloj/ticks controlados y proveedores de mapas sin tráfico de red. Los datos de prueba no se incluyen en el APK.
 
-## Aceptación manual pendiente
+## Escenarios de regresión de estadísticas
 
 1. Instalar el APK y entrar como visitante a Estadísticas sin configurar Firebase.
 2. Con datos locales, contrastar conteos con lista/mapa y verificar las categorías.
@@ -48,9 +48,9 @@ Los tests usan SQLite real en memoria, reloj/ticks controlados y proveedores de 
 6. Verificar separación demo si existen registros de demostración identificados.
 7. Ampliar texto y recorrer todos los indicadores sin recortes ni pérdida de controles.
 
-Después de esta entrega, el usuario confirmó que inició sesión con Google y registró reportes en Android. Queda por comprobar el rol administrativo y los indicadores en el dispositivo. Consultar estadísticas no requiere login.
+Después de esta entrega, el usuario confirmó que inició sesión con Google y registró reportes en Android. Consultar estadísticas no requiere login.
 
-Rama: `codex/TASK-008-estadisticas`, basada en `4889380`. Próxima fase: TASK-009 (compartir, accesibilidad y aceptación/calidad del APK).
+Rama histórica: `codex/TASK-008-estadisticas`, basada en `4889380`.
 
 ## TASK-009
 
@@ -67,21 +67,20 @@ El APK de depuración usa el código de versión 2. El manifiesto conserva Inter
 y ubicación en primer plano. Compartir texto no necesita permisos nuevos. La cámara
 y galería usan el selector del sistema, y el pin manual sigue disponible sin GPS.
 
-Este entorno no dispone de `config/firebase.android.json` ni de un Android
-conectado. La comprobación del usuario corresponde a su compilación configurada.
-El emulador local no pudo arrancar por falta de espacio en disco.
-Quedan por probar en el teléfono la hoja nativa, su cancelación, TalkBack,
-permisos denegados, actualización sobre la instalación que contiene los reportes
-y cambios del rol admin. Usar la configuración Firebase validada y el mismo
-certificado al compilar una actualización para esa instalación.
+Para repetir los escenarios en el teléfono, usar la configuración Firebase
+validada y el mismo certificado que la instalación existente.
 
 Referencias: [hoja de compartir de Android](https://developer.android.com/training/sharing/send?hl=es)
 y [pruebas de accesibilidad en Flutter](https://docs.flutter.dev/ui/accessibility/accessibility-testing).
 
 ## Aceptación final en Android
 
-La compilación de aceptación pasó 116 pruebas, el análisis estático y la validación
-de firma del APK. El APK generado en este entorno permite la revisión como visitante.
+El 20 de noviembre de 2026, el usuario confirmó que el APK `1.0.0+3` funciona
+correctamente en su dispositivo Android y solicitó cerrar las nueve fases del MVP.
+La suite completa registró 116 pruebas aprobadas. Tras consolidar el nuevo paquete,
+pasaron 33 pruebas de regresión y el análisis estático. La firma del APK con
+Firebase coincide con el SHA‑1 registrado para `com.mvp.reporte_ciudadano_mvp`.
+Los escenarios de abajo se conservan como guía de regresión para futuras versiones.
 
 Usar el APK interno de versión `1.0.0+3` compilado con el archivo Firebase ya
 validado y el mismo certificado de la instalación que contiene tus reportes.

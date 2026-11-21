@@ -5,6 +5,9 @@ Base Flutter Android de un MVP con SQLite privado. Repositorio:
 
 ## Estado actual
 
+Las nueve fases del MVP local están finalizadas. El usuario confirmó el
+funcionamiento del APK `1.0.0+3` con Firebase en su dispositivo Android.
+
 Incluye proyecto Android, tema, cinco rutas navegables y persistencia SQLite:
 repositorios de categorías y reportes, CRUD con eliminación lógica, permisos,
 auditoría y versiones privadas. La base migra de v1 a v2 conservando los datos.

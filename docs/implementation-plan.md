@@ -1,20 +1,21 @@
 # Plan y aceptación
 
-Las nueve fases de desarrollo del MVP local están implementadas. La aceptación
-manual se realiza en conjunto con la compilación final siguiendo la
-[guía de verificación](verification.md#aceptación-final-en-android).
+El MVP local quedó aceptado el 20 de noviembre de 2026. El usuario probó el APK
+`1.0.0+3` en su dispositivo Android y confirmó que la app funciona correctamente.
+Las nueve fases están finalizadas. La evidencia y los escenarios para repetir la
+validación están en la [guía de verificación](verification.md#aceptación-final-en-android).
 
-| Tarea | Estado | Cierre requerido |
+| Tarea | Estado | Entrega |
 |---|---|---|
-| TASK-001 Base Android | Base generada | Analyze, tests, APK y revisión en dispositivo |
-| TASK-002 SQLite | Persistencia implementada y cubierta por pruebas | Validación manual del APK en dispositivo pendiente |
-| TASK-003 Mapa | Mapa y selector implementados; verificación automatizada | Revisión manual de APK, GPS real y conectividad en Android |
-| TASK-004 Reportes | Lista, búsqueda, filtros y detalle implementados | Revisión manual del APK y de fotografías reales en Android |
-| TASK-005 Google y perfil | Inicio con Google comprobado por el usuario en Android | Revisar retiro del claim, cambio de cuenta y firma de distribución |
-| TASK-006 Alta y fotos | Alta de reportes comprobada por el usuario en Android | Revisar denegaciones y recuperación tras interrumpir la cámara |
-| TASK-007 Administración | Gestión, propuestas, revisión atómica e informe privado implementados y cubiertos por pruebas | Revisar permisos/claims y evidencias en Android real |
-| TASK-008 Estadísticas | Indicadores, filtros, tiempos y separación demo implementados y cubiertos por pruebas | Verificación manual de fechas locales, tiempos, lectura ampliada y actualización en Android |
-| TASK-009 Calidad | Resumen compartible, navegación accesible de fotos y APK interno | Verificar hoja de compartir, TalkBack y permisos en Android real |
+| TASK-001 Base Android | Finalizada | Proyecto Flutter, navegación y APK interno |
+| TASK-002 SQLite | Finalizada | Persistencia, integridad y migración |
+| TASK-003 Mapa | Finalizada | Mapa, GPS y selector manual de ubicación |
+| TASK-004 Reportes | Finalizada | Lista, búsqueda, filtros y detalle |
+| TASK-005 Google y perfil | Finalizada | Inicio de sesión con Google, nombre público y Mis reportes |
+| TASK-006 Alta y fotos | Finalizada | Formulario, borradores, ubicación y fotografías |
+| TASK-007 Administración | Finalizada | Gestión, propuestas, historial e informe privado |
+| TASK-008 Estadísticas | Finalizada | Indicadores locales, filtros, tiempos y sección demo |
+| TASK-009 Calidad | Finalizada | Resumen compartible, controles de galería y APK de aceptación |
 
 Trabajar en ramas feature/TASK-xxx-descripcion. Cada entrega incluye aceptación
 manual y evidencias; probar permisos en repositorio, no solo ocultar botones.
