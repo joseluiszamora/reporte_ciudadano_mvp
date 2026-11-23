@@ -1,0 +1,193 @@
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+}
+
+enum AuditRole {
+  VISITOR
+  CITIZEN
+  ADMIN
+  SYSTEM
+}
+
+enum ReportStatus {
+  REPORTED
+  IN_FOLLOW_UP
+  RESOLVED
+}
+
+enum PublicIdentityMode {
+  PUBLIC_NAME
+  ANONYMOUS
+}
+
+enum ProposalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id
+  publicName   String?  @map("public_name") @db.VarChar(50)
+  role         Role     @default(CITIZEN)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  lastSignInAt DateTime @default(now()) @map("last_sign_in_at") @db.Timestamptz(3)
+
+  reports           Report[]             @relation("ReportAuthor")
+  deletedReports    Report[]             @relation("ReportDeletedBy")
+  proposals         ResolutionProposal[] @relation("ProposalAuthor")
+  reviewedProposals ResolutionProposal[] @relation("ProposalReviewer")
+  statusHistory     ReportStatusHistory[]
+  reportRevisions   ReportRevision[]
+  auditEvents       AuditEvent[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String   @id
+  slug      String   @unique
+  name      String
+  iconKey   String   @map("icon_key")
+  sortOrder Int      @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  reports   Report[]
+
+  @@map("categories")
+}
+
+model Report {
+  id                  String             @id @db.Uuid
+  authorUid           String             @map("author_uid")
+  categoryId          String             @map("category_id")
+  title               String             @db.VarChar(100)
+  description         String             @db.VarChar(2000)
+  latitude            Float
+  longitude           Float
+  addressLabel        String?            @map("address_label")
+  status              ReportStatus       @default(REPORTED)
+  publicIdentityMode  PublicIdentityMode @map("public_identity_mode")
+  publicNameSnapshot  String?            @map("public_name_snapshot") @db.VarChar(50)
+  revision            Int                @default(0)
+  isDemo              Boolean            @default(false) @map("is_demo")
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  resolvedAt          DateTime?          @map("resolved_at") @db.Timestamptz(3)
+  deletedAt           DateTime?          @map("deleted_at") @db.Timestamptz(3)
+  deletedByUid        String?            @map("deleted_by_uid")
+  deletionReason      String?            @map("deletion_reason") @db.VarChar(1000)
+
+  author    User                  @relation("ReportAuthor", fields: [authorUid], references: [id], onDelete: Restrict)
+  deletedBy User?                 @relation("ReportDeletedBy", fields: [deletedByUid], references: [id], onDelete: Restrict)
+  category  Category              @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images    ReportImage[]
+  proposals ResolutionProposal[]
+  history   ReportStatusHistory[]
+  revisions ReportRevision[]
+
+  @@index([isDemo, deletedAt, createdAt, id])
+  @@index([categoryId])
+  @@index([status])
+  @@index([authorUid])
+  @@map("reports")
+}
+
+model ReportImage {
+  id         String   @id @default(uuid()) @db.Uuid
+  reportId   String   @map("report_id") @db.Uuid
+  storageKey String   @unique @map("storage_key")
+  mimeType   String   @map("mime_type")
+  byteSize   Int      @map("byte_size")
+  sortOrder  Int      @map("sort_order")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  report     Report   @relation(fields: [reportId], references: [id], onDelete: Restrict)
+
+  @@unique([reportId, sortOrder])
+  @@map("report_images")
+}
+
+model ResolutionProposal {
+  id                 String         @id @db.Uuid
+  reportId           String         @map("report_id") @db.Uuid
+  proposerUid        String         @map("proposer_uid")
+  note               String         @db.VarChar(1000)
+  status             ProposalStatus @default(PENDING)
+  evidenceStorageKey String         @unique @map("evidence_storage_key")
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  reviewedAt         DateTime?      @map("reviewed_at") @db.Timestamptz(3)
+  reviewerUid        String?        @map("reviewer_uid")
+  reviewNote         String?        @map("review_note") @db.VarChar(1000)
+  isDemoReview       Boolean        @default(false) @map("is_demo_review")
+
+  report   Report                @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  proposer User                  @relation("ProposalAuthor", fields: [proposerUid], references: [id], onDelete: Restrict)
+  reviewer User?                 @relation("ProposalReviewer", fields: [reviewerUid], references: [id], onDelete: Restrict)
+  history  ReportStatusHistory[]
+
+  @@index([reportId, status])
+  @@map("resolution_proposals")
+}
+
+model ReportStatusHistory {
+  id           String       @id @default(uuid()) @db.Uuid
+  reportId     String       @map("report_id") @db.Uuid
+  fromStatus   ReportStatus? @map("from_status")
+  toStatus     ReportStatus @map("to_status")
+  actorUid     String       @map("actor_uid")
+  proposalId   String?      @map("proposal_id") @db.Uuid
+  note         String       @db.VarChar(1000)
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  isDemoAction Boolean      @default(false) @map("is_demo_action")
+
+  report   Report              @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  actor    User                @relation(fields: [actorUid], references: [id], onDelete: Restrict)
+  proposal ResolutionProposal? @relation(fields: [proposalId], references: [id], onDelete: Restrict)
+
+  @@index([reportId, createdAt])
+  @@map("report_status_history")
+}
+
+model ReportRevision {
+  reportId     String   @map("report_id") @db.Uuid
+  revision     Int
+  snapshot     Json
+  changedByUid String   @map("changed_by_uid")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  report       Report   @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  changedBy    User     @relation(fields: [changedByUid], references: [id], onDelete: Restrict)
+
+  @@id([reportId, revision])
+  @@map("report_revisions")
+}
+
+model AuditEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  actorUid      String?   @map("actor_uid")
+  actorRole     AuditRole @map("actor_role")
+  action        String
+  entityType    String    @map("entity_type")
+  entityId      String?   @map("entity_id")
+  changedFields String[]  @default([]) @map("changed_fields")
+  reason        String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  isDemo        Boolean   @default(false) @map("is_demo")
+  actor         User?     @relation(fields: [actorUid], references: [id], onDelete: Restrict)
+
+  @@index([actorUid, createdAt])
+  @@index([action, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("audit_events")
+}

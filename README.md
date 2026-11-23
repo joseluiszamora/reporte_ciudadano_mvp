@@ -50,6 +50,15 @@ No contiene usuarios ni credenciales de demostración que aparenten autenticaci�
 En **Perfil → Cargar reportes de demostración** puedes agregar tres ejemplos
 ficticios para recorrer mapa, lista, detalle y estadísticas como visitante.
 
+La [base del backend](backend/README.md) se ejecuta como servicio independiente
+con Node.js, Express, Prisma y PostgreSQL. Incluye el catálogo y la API de lectura
+de reportes. La app Android todavía consulta su base SQLite local.
+
+El [panel web](frontend/README.md) usa Next.js para consultar los reportes de
+PostgreSQL a través de Express. El acceso administrativo con Google permite
+editar, cambiar el seguimiento y retirar reportes con auditoría.
+Consulta cómo [configurar Firebase y habilitar un administrador](docs/firebase-setup.md#acceso-de-administrador-al-panel-web).
+
 Desde el detalle se puede revisar y compartir un resumen de texto mediante Android.
 Los botones «Foto anterior» y «Foto siguiente» permiten recorrer la galería sin deslizar.
 

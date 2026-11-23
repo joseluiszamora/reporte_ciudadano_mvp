@@ -1,4 +1,9 @@
-# Activar Google/Firebase en Android
+# Configurar Google y Firebase en Reportes Ciudadanos
+
+- [Acceso de administrador al panel web](#acceso-de-administrador-al-panel-web)
+- [Inicio de sesión en Android](#inicio-de-sesión-en-android)
+
+## Inicio de sesión en Android
 
 El usuario confirmó que configuró Firebase y comprobó el acceso con Google y el
 registro de reportes en Android. Cada entorno que compile con Google necesita su
@@ -58,8 +63,8 @@ para promover usuarios. Tras asignarlo, cerrar sesión y entrar de nuevo.
 
 Si no se pueden consultar los claims por falta de conexión, no se concede admin;
 una identidad persistida puede seguir usando funciones locales como ciudadano.
-La administración local de reportes está implementada en TASK-007. El backend futuro
-deberá validar nuevamente permisos en servidor: SQLite no reemplaza esa validación.
+La administración local de reportes está implementada en TASK-007. El backend
+web verifica el token y comprueba el permiso en cada solicitud administrativa.
 
 ## Comprobaciones adicionales en Android
 
@@ -74,3 +79,123 @@ deberá validar nuevamente permisos en servidor: SQLite no reemplaza esa validac
 Referencias oficiales: [Firebase Auth Flutter](https://firebase.google.com/docs/auth/flutter/federated-auth),
 [Google Sign-In Android](https://pub.dev/packages/google_sign_in_android),
 [Firebase custom claims](https://firebase.google.com/docs/auth/admin/custom-claims).
+
+## Acceso de administrador al panel web
+
+Usa una cuenta de Google para entrar al panel. Firebase le asigna un UID la
+primera vez que inicia sesión. El permiso de gestión del proyecto se otorga a
+ese UID mediante el atributo personalizado booleano `admin: true`. Necesitas
+acceso al proyecto en Firebase Console con permisos para configurarlo y una
+credencial autorizada para gestionar usuarios de Firebase Authentication.
+
+### 1. Habilitar Google y registrar el panel
+
+1. Entra en [Firebase Console](https://console.firebase.google.com/) con la
+   cuenta que administra el proyecto. Abre el proyecto existente que usa
+   Android. Si aún no tienes proyecto, selecciona **Crear un proyecto**.
+2. Abre **Authentication → Método de acceso**, habilita **Google**, selecciona
+   un correo de asistencia del proyecto y guarda.
+3. En **Authentication → Configuración → Dominios autorizados**, agrega
+   `localhost` si aún no aparece. Escribe solo el dominio. Para el flujo
+   local de esta guía, abre siempre el panel como `http://localhost:3001`.
+4. En **Configuración del proyecto → General → Tus apps**, selecciona el
+   icono web **</>**. Registra la app como **Reportes Ciudadanos Web** y copia
+   el objeto `firebaseConfig` que muestra Firebase. Puedes dejar Firebase
+   Hosting sin activar para ejecutar el panel localmente.
+
+Consulta la documentación de [configuración web](https://firebase.google.com/docs/web/setup),
+[inicio con Google](https://firebase.google.com/docs/auth/web/google-signin) y
+[dominios autorizados](https://firebase.google.com/docs/auth/faq-and-troubleshooting).
+
+### 2. Configurar y arrancar el panel local
+
+En `frontend/.env.local`, crea el archivo a partir de `frontend/.env.example`
+si aún no existe. Sustituye los marcadores por los valores de la **app web**:
+
+```dotenv
+REPORTS_API_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_FIREBASE_API_KEY=<apiKey>
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=<projectId>
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<authDomain>
+NEXT_PUBLIC_FIREBASE_APP_ID=<appId>
+```
+
+En `backend/.env`, conserva la conexión a PostgreSQL y asigna el mismo
+`projectId` en `FIREBASE_PROJECT_ID`:
+
+```dotenv
+FIREBASE_PROJECT_ID=<projectId>
+```
+
+Inicia o reinicia Express y Next.js para que lean la configuración. Si el
+esquema aún no está aplicado, sigue primero la [guía del backend](../backend/README.md).
+En una terminal ubicada en `backend/`, ejecuta `npm.cmd run dev`. En otra
+ubicada en `frontend/`, ejecuta `npm.cmd ci` si todavía no instalaste
+dependencias y luego `npm.cmd run dev`.
+
+### 3. Identificar el UID que vas a autorizar
+
+1. Abre [el panel local](http://localhost:3001). En **Acceso administrativo**,
+   selecciona **Entrar con Google** y usa la cuenta que gestionará los reportes.
+   Si aparece «Tu cuenta no tiene permisos de administración» en este primer
+   acceso, la cuenta de Google ya inició sesión y falta asignar el permiso.
+2. En Firebase Console, abre **Authentication → Usuarios**. Busca el correo de
+   esa cuenta y copia su **UID de usuario**. Confirma el correo y el proveedor
+   Google antes de continuar.
+
+### 4. Asignar el permiso con Firebase Admin SDK
+
+En **Configuración del proyecto → Cuentas de servicio → Firebase Admin SDK**,
+selecciona **Generar nueva clave privada**. Guarda el JSON fuera del repositorio
+en un directorio privado. Si tu organización restringe la generación de
+claves, solicita que un administrador del proyecto ejecute la asignación con
+sus credenciales autorizadas. [Configuración del SDK de administrador](https://firebase.google.com/docs/admin/setup).
+
+Abre una terminal de PowerShell en `backend/` con las dependencias instaladas.
+Ajusta la ruta del JSON, el ID del proyecto y el UID antes de ejecutar:
+
+```powershell
+$env:GOOGLE_APPLICATION_CREDENTIALS = 'C:\ruta\privada\firebase-admin.json'
+$env:FIREBASE_PROJECT_ID = 'id-de-tu-proyecto'
+$env:FIREBASE_ADMIN_UID = 'uid-copiado-de-firebase'
+
+@'
+import { applicationDefault, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+const { FIREBASE_PROJECT_ID: projectId, FIREBASE_ADMIN_UID: uid } = process.env;
+if (!projectId || !uid) throw new Error("Indica el proyecto y el UID.");
+
+const auth = getAuth(initializeApp({ projectId, credential: applicationDefault() }));
+const user = await auth.getUser(uid);
+if (user.disabled || !user.providerData.some(({ providerId }) => providerId === "google.com")) {
+  throw new Error("El UID debe pertenecer a un usuario habilitado con Google.");
+}
+
+await auth.setCustomUserClaims(uid, { ...user.customClaims, admin: true });
+if ((await auth.getUser(uid)).customClaims?.admin !== true) {
+  throw new Error("Firebase no confirmó el permiso.");
+}
+console.log("Permiso de administrador confirmado en Firebase.");
+'@ | node --input-type=module
+```
+
+El comando conserva los demás atributos personalizados. Mantén el JSON de la
+cuenta de servicio fuera de Git, de `frontend/` y de cualquier archivo
+`NEXT_PUBLIC_*`. [Asignación de permisos con atributos personalizados](https://firebase.google.com/docs/auth/admin/custom-claims).
+
+### 5. Comprobar el acceso
+
+1. Cierra sesión en el panel y vuelve a entrar con la misma cuenta de Google.
+   Así Firebase emite un token que incluye el nuevo permiso.
+2. Si el panel lo solicita, introduce tu nombre público y guárdalo.
+3. Abre un reporte de PostgreSQL. El detalle debe mostrar **Gestión del
+   reporte** con los botones de edición, seguimiento o reapertura, y retiro.
+   Si la base está vacía, puedes confirmar el acceso por el nombre guardado en
+   el menú del panel. Los botones de gestión aparecerán al abrir un reporte.
+
+Si Google indica que el dominio no está autorizado, revisa `localhost` en el
+paso 1. Si el panel sigue indicando que faltan permisos después de volver a
+entrar, verifica que el UID y los dos valores de `projectId` correspondan al
+mismo proyecto. Si Firebase rechaza el comando del paso 4, verifica que la
+credencial tenga permiso para modificar usuarios de Firebase Authentication.
