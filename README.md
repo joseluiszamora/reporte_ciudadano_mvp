@@ -50,7 +50,7 @@ No contiene usuarios ni credenciales de demostración que aparenten autenticaci�
 En **Perfil → Cargar reportes de demostración** puedes agregar tres ejemplos
 ficticios para recorrer mapa, lista, detalle y estadísticas como visitante.
 
-El [panel web y la API](frontend/README.md) se ejecutan juntos en Next.js, con
+El [panel web y la API](web-api/README.md) se ejecutan juntos en Next.js, con
 Prisma, PostgreSQL y Firebase. La [API móvil](docs/mobile-api.md) expone el
 catálogo, los perfiles, la publicación con fotos y la gestión de propuestas.
 La instalación actual de Android mantiene sus repositorios SQLite.

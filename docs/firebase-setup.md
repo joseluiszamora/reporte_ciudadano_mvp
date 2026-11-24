@@ -109,7 +109,7 @@ Consulta la documentación de [configuración web](https://firebase.google.com/d
 
 ### 2. Configurar y arrancar el panel local
 
-En `frontend/.env.local`, crea el archivo a partir de `frontend/.env.example`
+En `web-api/.env.local`, crea el archivo a partir de `web-api/.env.example`
 si aún no existe. Sustituye los marcadores por los valores de la **app web**:
 
 ```dotenv
@@ -122,7 +122,7 @@ NEXT_PUBLIC_FIREBASE_APP_ID=<appId>
 
 Usa el mismo `projectId` en las variables del servidor y del navegador. Conserva
 la conexión a PostgreSQL en el mismo archivo. Sigue la
-[guía de arranque](../frontend/README.md) para instalar las dependencias,
+[guía de arranque](../web-api/README.md) para instalar las dependencias,
 aplicar el esquema e iniciar o reiniciar Next.js.
 
 ### 3. Identificar el UID que vas a autorizar
@@ -143,7 +143,7 @@ en un directorio privado. Si tu organización restringe la generación de
 claves, solicita que un administrador del proyecto ejecute la asignación con
 sus credenciales autorizadas. [Configuración del SDK de administrador](https://firebase.google.com/docs/admin/setup).
 
-Abre una terminal de PowerShell en `frontend/` con las dependencias instaladas.
+Abre una terminal de PowerShell en `web-api/` con las dependencias instaladas.
 Ajusta la ruta del JSON, el ID del proyecto y el UID antes de ejecutar:
 
 ```powershell
@@ -173,7 +173,7 @@ console.log("Permiso de administrador confirmado en Firebase.");
 ```
 
 El comando conserva los demás atributos personalizados. Mantén el JSON de la
-cuenta de servicio fuera de Git, de `frontend/` y de cualquier archivo
+cuenta de servicio fuera de Git, de `web-api/` y de cualquier archivo
 `NEXT_PUBLIC_*`. [Asignación de permisos con atributos personalizados](https://firebase.google.com/docs/auth/admin/custom-claims).
 
 ### 5. Comprobar el acceso

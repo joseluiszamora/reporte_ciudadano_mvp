@@ -2,7 +2,7 @@
 
 El panel y la aplicación móvil pueden usar la misma API HTTPS en
 `/api/v1`. En este equipo se ejecuta en `http://localhost:3001/api/v1`.
-Para probar las lecturas desde el emulador Android, inicia Next.js con
+Para probar las lecturas desde el emulador Android, inicia Next.js desde `web-api/` con
 `npx.cmd next dev --hostname 0.0.0.0 --port 3001` y usa
 `http://10.0.2.2:3001/api/v1` si la configuración de depuración permite HTTP.
 Para enviar tokens en un dispositivo usa un destino HTTPS.
