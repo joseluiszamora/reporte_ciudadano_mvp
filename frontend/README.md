@@ -24,6 +24,9 @@ son públicos. Separan reportes reales y de demostración, y excluyen los retira
 Sigue la [guía de acceso de administrador](../docs/firebase-setup.md#acceso-de-administrador-al-panel-web)
 para registrar el panel en Firebase y asignar `admin: true` a tu cuenta de Google.
 
+El usuario confirmó el inicio de sesión con Google y el acceso como administrador
+en el panel local de Reportes Ciudadanos.
+
 Desde el detalle se pueden editar los datos, iniciar seguimiento, devolver a
 reportado, reabrir o retirar lógicamente. Las acciones requieren motivo y
 comprueban la revisión del reporte para evitar sobrescrituras. Resolver un
