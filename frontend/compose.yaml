@@ -1,3 +1,4 @@
+name: backend
 services:
   postgres:
     image: postgres:17

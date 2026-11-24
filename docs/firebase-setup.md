@@ -113,25 +113,17 @@ En `frontend/.env.local`, crea el archivo a partir de `frontend/.env.example`
 si aún no existe. Sustituye los marcadores por los valores de la **app web**:
 
 ```dotenv
-REPORTS_API_URL=http://127.0.0.1:3000
+FIREBASE_PROJECT_ID=<projectId>
 NEXT_PUBLIC_FIREBASE_API_KEY=<apiKey>
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=<projectId>
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<authDomain>
 NEXT_PUBLIC_FIREBASE_APP_ID=<appId>
 ```
 
-En `backend/.env`, conserva la conexión a PostgreSQL y asigna el mismo
-`projectId` en `FIREBASE_PROJECT_ID`:
-
-```dotenv
-FIREBASE_PROJECT_ID=<projectId>
-```
-
-Inicia o reinicia Express y Next.js para que lean la configuración. Si el
-esquema aún no está aplicado, sigue primero la [guía del backend](../backend/README.md).
-En una terminal ubicada en `backend/`, ejecuta `npm.cmd run dev`. En otra
-ubicada en `frontend/`, ejecuta `npm.cmd ci` si todavía no instalaste
-dependencias y luego `npm.cmd run dev`.
+Usa el mismo `projectId` en las variables del servidor y del navegador. Conserva
+la conexión a PostgreSQL en el mismo archivo. Sigue la
+[guía de arranque](../frontend/README.md) para instalar las dependencias,
+aplicar el esquema e iniciar o reiniciar Next.js.
 
 ### 3. Identificar el UID que vas a autorizar
 
@@ -151,7 +143,7 @@ en un directorio privado. Si tu organización restringe la generación de
 claves, solicita que un administrador del proyecto ejecute la asignación con
 sus credenciales autorizadas. [Configuración del SDK de administrador](https://firebase.google.com/docs/admin/setup).
 
-Abre una terminal de PowerShell en `backend/` con las dependencias instaladas.
+Abre una terminal de PowerShell en `frontend/` con las dependencias instaladas.
 Ajusta la ruta del JSON, el ID del proyecto y el UID antes de ejecutar:
 
 ```powershell

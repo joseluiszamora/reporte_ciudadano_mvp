@@ -1,6 +1,6 @@
 generator client {
   provider            = "prisma-client"
-  output              = "../src/generated/prisma"
+  output              = "../server/generated/prisma"
   moduleFormat        = "esm"
   importFileExtension = "ts"
 }
@@ -190,4 +190,13 @@ model AuditEvent {
   @@index([action, createdAt])
   @@index([entityType, entityId, createdAt])
   @@map("audit_events")
+}
+
+model MediaAsset {
+  id        String   @id @db.Uuid
+  mimeType  String   @map("mime_type")
+  bytes     Bytes
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@map("media_assets")
 }

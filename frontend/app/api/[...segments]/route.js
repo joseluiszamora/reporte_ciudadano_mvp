@@ -1,37 +1,23 @@
-const publicRoute = /^(categories|reports(?:\/(?:summary|[a-z0-9-]+))?)$/i;
-const adminReport = /^admin\/reports\/[a-z0-9-]+$/i;
+import { serveApi } from "../../../server/api.js";
+import { json, respond } from "../../../server/http.js";
+import { getPrisma, getVerifier } from "../../../server/services.js";
 
-async function proxy(request, { params }) {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function handle(request, { params }) {
   const { segments } = await params;
-  const path = segments.join("/");
-  const { method } = request;
-  const allowed = (method === "GET" && (publicRoute.test(path) || path === "admin/session")) ||
-    (method === "PUT" && path === "admin/profile") ||
-    (method === "PATCH" && adminReport.test(path));
-  if (!allowed) return Response.json({ error: "NOT_FOUND" }, { status: 404 });
-
-  const headers = new Headers({ Accept: "application/json" });
-  for (const key of ["authorization", "content-type"]) {
-    const value = request.headers.get(key);
-    if (value) headers.set(key, value);
+  const path = segments[0] === "v1" ? segments.slice(1) : segments;
+  if (request.method === "GET" && path.join("/") === "health") {
+    return json({ status: "ok" });
   }
-  try {
-    const api = new URL("/api/v1/" + path, process.env.REPORTS_API_URL ?? "http://127.0.0.1:3000");
-    api.search = new URL(request.url).search;
-    const response = await fetch(api, {
-      method, headers, cache: "no-store", redirect: "error",
-      signal: AbortSignal.timeout(8000),
-      ...(method !== "GET" && { body: request.body, duplex: "half" }),
-    });
-    return new Response(response.body, {
-      status: response.status,
-      headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-    });
-  } catch {
-    return Response.json({ error: "API_UNAVAILABLE" }, { status: 502 });
+  if (request.method === "GET" && path.join("/") === "ready" && !process.env.DATABASE_URL) {
+    return json({ status: "unavailable" }, 503);
   }
+  return respond(() => serveApi(getPrisma(), getVerifier(), request, path));
 }
 
-export const GET = proxy;
-export const PATCH = proxy;
-export const PUT = proxy;
+export const GET = handle;
+export const PUT = handle;
+export const POST = handle;
+export const PATCH = handle;

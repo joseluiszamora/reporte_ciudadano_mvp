@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, Clock3, Image, MapPin, Pencil, Trash2, X } from "lucide-react";
 import Status from "./status.js";
+import ProposalReview from "./proposal-review.js";
 import { api, formatDate, statusText } from "./api-client.js";
 
 const transitions = {
@@ -100,7 +101,12 @@ export default function ReportDetail({ id, admin, categories, onClose, onChange 
             <span>{report.latitude.toFixed(5)}, {report.longitude.toFixed(5)}</span></div>
           <a href={mapHref} target="_blank" rel="noreferrer" className="button button-outline">Ver mapa</a>
         </div>
-        {!!report.images.length && <p className="image-meta"><Image size={17} /> {report.images.length} {report.images.length === 1 ? "imagen registrada" : "imágenes registradas"}</p>}
+        {report.images.some((image) => image.url) && <div className="report-photos">
+          {report.images.filter((image) => image.url).map((image, index) =>
+            <a href={image.url} target="_blank" rel="noreferrer" key={image.id}><img src={image.url} alt={`Foto ${index + 1} del reporte`} loading="lazy" /></a>)}
+        </div>}
+        {report.images.length > 0 && report.images.every((image) => !image.url) &&
+          <p className="image-meta"><Image size={17} /> {report.images.length} {report.images.length === 1 ? "imagen registrada" : "imágenes registradas"}</p>}
         <section className="history" aria-labelledby="history-title">
           <h3 id="history-title"><Clock3 size={17} /> Historial de estados</h3>
           {report.history.length ? <ol>{report.history.map((event, index) => <li key={index}>
@@ -144,6 +150,12 @@ export default function ReportDetail({ id, admin, categories, onClose, onChange 
             </div>
           </form>}
         </section>}
+        {admin && <ProposalReview key={`${report.id}-${version}`} report={report} user={admin} onReviewed={() => {
+          setSuccess("Decisión guardada.");
+          setReport(null);
+          setVersion((value) => value + 1);
+          onChange(false);
+        }} />}
       </>}
     </div>
   </dialog>;
