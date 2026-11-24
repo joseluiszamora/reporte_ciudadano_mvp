@@ -68,11 +68,12 @@ export default function Access({ onChange }) {
 
   async function login() {
     setBusy(true);
+    setError("");
     try {
       await signInWithPopup(auth, new GoogleAuthProvider());
     } catch (problem) {
       const text = problem.code === "auth/unauthorized-domain"
-        ? "Autoriza 127.0.0.1 en Firebase Authentication o usa localhost."
+        ? `Agrega ${window.location.hostname} a los dominios autorizados de Firebase Authentication en el proyecto ${config.projectId}.`
         : "No se pudo iniciar sesión con Google. Comprueba la configuración de Firebase y vuelve a intentar.";
       setError(text);
     } finally {
