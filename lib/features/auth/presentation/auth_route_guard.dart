@@ -46,9 +46,7 @@ String? authRedirect(AuthState auth, Uri uri) {
     }
     return complete ? target : null;
   }
-  if (path == '/nuevo' ||
-      path == '/acciones' ||
-      path.startsWith('/gestionar/')) {
+  if (path == '/acciones' || path.startsWith('/gestionar/')) {
     if (auth.user == null) {
       return Uri(
         path: '/acceso',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../domain/category_repository.dart';
+import 'category_icon.dart';
 
 /// Small live view to verify the local catalog before the reporting form exists.
 class CategoryCatalog extends StatelessWidget {
@@ -44,7 +45,7 @@ class CategoryCatalog extends StatelessWidget {
             const ListTile(title: Text('No hay categorías habilitadas.')),
           for (final category in active)
             ListTile(
-              leading: const Icon(Icons.category_outlined),
+              leading: Icon(categoryIcon(category.iconKey)),
               title: Text(category.name),
             ),
         ],

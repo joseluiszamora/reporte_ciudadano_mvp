@@ -1,10 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/location/geo_point.dart';
-import '../../reports/domain/report_policy.dart';
+import '../../categories/presentation/category_icon.dart';
+import '../../reports/presentation/report_labels.dart';
+import '../../reports/presentation/report_status_badge.dart';
 import '../domain/map_report_repository.dart';
 import 'map_tiles.dart';
 
@@ -38,6 +42,9 @@ class _MapCanvasState extends State<MapCanvas> {
   bool tileError = false;
   bool errorQueued = false;
   int generation = 0;
+  int zoom = 13;
+  bool draggingPin = false;
+  Offset? dragOffset;
 
   LatLng mapPoint(GeoPoint point) =>
       LatLng(point.latitude.clamp(-85.05112878, 85.05112878), point.longitude);
@@ -103,28 +110,169 @@ class _MapCanvasState extends State<MapCanvas> {
     }
   }
 
-  Color markerColor(ReportStatus status) => switch (status) {
-    ReportStatus.reported => const Color(0xFFB3261E),
-    ReportStatus.inFollowUp => const Color(0xFF875500),
-    ReportStatus.resolved => const Color(0xFF176B64),
-  };
+  List<Marker> reportMarkers(BuildContext context) {
+    if (widget.reports.isEmpty) return const [];
+    final groups = <(int, int), List<MapReport>>{};
+    // Web Mercator gives stable clusters while panning a given zoom level.
+    final world = 256 * math.pow(2, zoom);
+    for (final report in widget.reports) {
+      final point = mapPoint(report.point);
+      final latitude = point.latitude * math.pi / 180;
+      final sinLatitude = math.sin(latitude);
+      final x = (point.longitude + 180) / 360 * world;
+      final y =
+          (.5 -
+              math.log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * math.pi)) *
+          world;
+      (groups[((x / 52).floor(), (y / 52).floor())] ??= []).add(report);
+    }
 
-  String statusLabel(ReportStatus status) => switch (status) {
-    ReportStatus.reported => 'Reportado',
-    ReportStatus.inFollowUp => 'En seguimiento',
-    ReportStatus.resolved => 'Solucionado',
-  };
+    return [
+      for (final group in groups.values)
+        Marker(
+          point: mapPoint(group.first.point),
+          width: 48,
+          height: 48,
+          child: group.length == 1
+              ? reportPin(context, group.single)
+              : clusterPin(context, group),
+        ),
+    ];
+  }
 
-  IconData categoryIcon(String key) => switch (key) {
-    'road' => Icons.construction,
-    'traffic' => Icons.traffic,
-    'walk' => Icons.directions_walk,
-    'light' => Icons.lightbulb_outline,
-    'delete' => Icons.delete_outline,
-    'water' => Icons.water_drop_outlined,
-    'sign' => Icons.signpost_outlined,
-    _ => Icons.category_outlined,
-  };
+  Widget reportPin(BuildContext context, MapReport report) {
+    final scheme = Theme.of(context).colorScheme;
+    final colors = report.status.colors(context);
+    return IconButton(
+      tooltip:
+          '${report.title} · ${report.category} · ${ReportLabels.status(report.status)}${report.isDemo ? ' · Demostración' : ''}',
+      onPressed: widget.onReportTap == null
+          ? null
+          : () => widget.onReportTap!(report),
+      padding: EdgeInsets.zero,
+      icon: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.location_on_rounded, size: 48, color: scheme.onSurface),
+          Icon(Icons.location_on_rounded, size: 43, color: colors.foreground),
+          Positioned(
+            top: 10,
+            child: Icon(
+              categoryIcon(report.categoryIcon),
+              size: 17,
+              color: colors.background,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget clusterPin(BuildContext context, List<MapReport> group) {
+    final scheme = Theme.of(context).colorScheme;
+    return IconButton(
+      tooltip: '${group.length} reportes agrupados',
+      onPressed: () => openCluster(group),
+      padding: EdgeInsets.zero,
+      icon: Container(
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          shape: BoxShape.circle,
+          border: Border.all(color: scheme.surface, width: 2),
+        ),
+        alignment: Alignment.center,
+        width: 44,
+        height: 44,
+        child: Text(
+          group.length > 999 ? '999+' : '${group.length}',
+          style: TextStyle(
+            color: scheme.onPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> openCluster(List<MapReport> group) async {
+    if (!ready) return;
+    final point = mapPoint(group.first.point);
+    if (zoom < 19 && group.any((report) => report.point != group.first.point)) {
+      controller.move(point, (zoom + 2).clamp(3, 19).toDouble());
+      return;
+    }
+    final selected = await showModalBottomSheet<MapReport>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: ListView.builder(
+          itemCount: group.length,
+          itemBuilder: (context, index) {
+            final report = group[index];
+            return ListTile(
+              leading: Icon(categoryIcon(report.categoryIcon)),
+              title: Text(report.title),
+              subtitle: Text(ReportLabels.status(report.status)),
+              onTap: () => Navigator.pop(context, report),
+            );
+          },
+        ),
+      ),
+    );
+    if (mounted && selected != null) widget.onReportTap?.call(selected);
+  }
+
+  void finishDrag() {
+    final offset = dragOffset;
+    if (offset != null && ready && widget.selected != null) {
+      final camera = controller.camera;
+      final pixel = camera.latLngToScreenOffset(mapPoint(widget.selected!));
+      final point = camera.screenOffsetToLatLng(pixel + offset);
+      widget.onSelect?.call(
+        GeoPoint(
+          point.latitude.clamp(-90, 90),
+          ((point.longitude + 180) % 360) - 180,
+        ),
+      );
+    }
+    setState(() {
+      dragOffset = null;
+      draggingPin = false;
+    });
+  }
+
+  Widget selectedPin(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final pin = Tooltip(
+      message: widget.onSelect == null
+          ? 'Ubicación elegida'
+          : 'Arrastra para ajustar la ubicación',
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.place_rounded, size: 48, color: scheme.onSurface),
+          Icon(Icons.place_rounded, size: 43, color: scheme.primary),
+        ],
+      ),
+    );
+    if (widget.onSelect == null) return pin;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanStart: (_) => setState(() {
+        draggingPin = true;
+        dragOffset = Offset.zero;
+      }),
+      onPanUpdate: (event) => setState(
+        () => dragOffset = (dragOffset ?? Offset.zero) + event.delta,
+      ),
+      onPanEnd: (_) => finishDrag(),
+      onPanCancel: () => setState(() {
+        dragOffset = null;
+        draggingPin = false;
+      }),
+      child: Transform.translate(offset: dragOffset ?? Offset.zero, child: pin),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,12 +288,21 @@ class _MapCanvasState extends State<MapCanvas> {
                 options: MapOptions(
                   initialCenter: mapPoint(widget.focus ?? GeoPoint.elAlto),
                   initialZoom: 13,
+                  backgroundColor: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainer,
                   minZoom: 3,
                   maxZoom: 19,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                  interactionOptions: InteractionOptions(
+                    flags: draggingPin
+                        ? InteractiveFlag.none
+                        : InteractiveFlag.all & ~InteractiveFlag.rotate,
                   ),
                   onMapReady: () => ready = true,
+                  onPositionChanged: (camera, _) {
+                    final level = camera.zoom.floor();
+                    if (level != zoom) setState(() => zoom = level);
+                  },
                   onTap: widget.onSelect == null
                       ? null
                       : (_, point) => widget.onSelect!(
@@ -169,49 +326,13 @@ class _MapCanvasState extends State<MapCanvas> {
                   ),
                   MarkerLayer(
                     markers: [
-                      for (final report in widget.reports)
-                        Marker(
-                          point: mapPoint(report.point),
-                          width: 48,
-                          height: 48,
-                          child: IconButton(
-                            tooltip:
-                                '${report.title} · ${report.category} · ${statusLabel(report.status)}${report.isDemo ? ' · Demostración' : ''}',
-                            onPressed: () => widget.onReportTap?.call(report),
-                            padding: EdgeInsets.zero,
-                            icon: Stack(
-                              alignment: Alignment.topCenter,
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 44,
-                                  color: markerColor(report.status),
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  child: Icon(
-                                    categoryIcon(report.categoryIcon),
-                                    size: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      ...reportMarkers(context),
                       if (widget.selected != null)
                         Marker(
                           point: mapPoint(widget.selected!),
                           width: 48,
                           height: 48,
-                          child: const Tooltip(
-                            message: 'Ubicación elegida',
-                            child: Icon(
-                              Icons.place,
-                              size: 44,
-                              color: Colors.indigo,
-                            ),
-                          ),
+                          child: selectedPin(context),
                         ),
                     ],
                   ),

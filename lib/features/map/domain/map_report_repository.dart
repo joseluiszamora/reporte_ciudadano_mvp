@@ -11,6 +11,10 @@ class MapReport {
     required this.status,
     required this.isDemo,
     this.categoryIcon = 'category',
+    this.createdAt,
+    this.resolvedAt,
+    this.photoPath,
+    this.address,
   });
   final String id;
   final String title;
@@ -19,6 +23,10 @@ class MapReport {
   final GeoPoint point;
   final ReportStatus status;
   final bool isDemo;
+  final DateTime? createdAt;
+  final DateTime? resolvedAt;
+  final String? photoPath;
+  final String? address;
 }
 
 abstract interface class MapReportRepository {

@@ -30,6 +30,21 @@ class CategoryStatistics {
   final int total;
 }
 
+enum PendingAgeRange {
+  underWeek('Menos de 7 días'),
+  underMonth('De 7 a 29 días'),
+  monthOrMore('30 días o más');
+
+  const PendingAgeRange(this.label);
+  final String label;
+
+  static PendingAgeRange forDays(int days) => days < 7
+      ? underWeek
+      : days < 30
+      ? underMonth
+      : monthOrMore;
+}
+
 class StatisticsGroup {
   StatisticsGroup({
     required this.total,
@@ -40,13 +55,16 @@ class StatisticsGroup {
     required this.averagePendingAge,
     required this.oldestPendingAge,
     required this.averageResolutionTime,
-  }) : categories = List.unmodifiable(categories);
+    Map<PendingAgeRange, int> pendingByAge = const {},
+  }) : categories = List.unmodifiable(categories),
+       pendingByAge = Map.unmodifiable(pendingByAge);
   final int total;
   final int reported;
   final int inFollowUp;
   final int resolved;
   int get pending => reported + inFollowUp;
   final List<CategoryStatistics> categories;
+  final Map<PendingAgeRange, int> pendingByAge;
 
   /// Null means no sample, distinct from a measured zero duration.
   final Duration? averagePendingAge;

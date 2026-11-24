@@ -35,13 +35,17 @@ class ReportQueryDao {
         Variable.withString(filter.until!.toUtc().toIso8601String()),
       );
     }
-    final direction = filter.order == ReportOrder.newest ? 'DESC' : 'ASC';
+    final order = switch (filter.order) {
+      ReportOrder.newest => 'r.created_at DESC,r.id DESC',
+      ReportOrder.oldest => 'r.created_at ASC,r.id ASC',
+      ReportOrder.longestPending => "CASE WHEN r.status = 'RESOLVED' THEN 1 ELSE 0 END,r.created_at ASC,r.id ASC",
+    };
     final rows = await db.customSelect(
       '''SELECT r.id,r.title,r.description,r.latitude,r.longitude,r.address_label,
       r.status,r.created_at,r.resolved_at,r.is_demo,c.name AS category,c.icon_key,
       (SELECT local_relative_path FROM report_images i WHERE i.report_id=r.id ORDER BY sort_order LIMIT 1) AS photo_path
       FROM reports r JOIN categories c ON c.id=r.category_id WHERE ${where.join(' AND ')}
-      ORDER BY r.created_at $direction,r.id $direction''',
+      ORDER BY $order''',
       variables: variables,
     ).get();
     final query = filter.search.trim().toLowerCase();

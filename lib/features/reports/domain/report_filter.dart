@@ -1,6 +1,6 @@
 import 'report_policy.dart';
 
-enum ReportOrder { newest, oldest }
+enum ReportOrder { newest, oldest, longestPending }
 
 class ReportFilter {
   const ReportFilter({

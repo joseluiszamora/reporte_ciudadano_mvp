@@ -29,7 +29,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.person_outline));
+        await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
         await tester.pumpAndSettle();
         expect(find.text('Estás explorando como visitante.'), findsOneWidget);
         final load = find.text('Cargar reportes de demostración');

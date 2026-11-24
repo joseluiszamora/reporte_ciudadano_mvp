@@ -151,7 +151,7 @@ void main() {
           null,
           created.subtract(const Duration(hours: 1)),
         ),
-        'Tiempo pendiente: 0 min',
+        'menos de 1 min pendiente',
       );
       expect(
         ReportLabels.elapsed(
@@ -159,7 +159,7 @@ void main() {
           created.add(const Duration(hours: 26)),
           created,
         ),
-        'Resuelto en: 1 día 2 h',
+        'Resuelto en 1 día',
       );
     },
   );

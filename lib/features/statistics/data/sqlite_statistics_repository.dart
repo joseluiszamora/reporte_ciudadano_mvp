@@ -101,6 +101,7 @@ class SqliteStatisticsRepository implements StatisticsRepository {
     var pendingMicros = 0;
     var resolutionMicros = 0;
     var oldestMicros = 0;
+    final pendingByAge = <PendingAgeRange, int>{};
     final categoryCounts = <String, int>{};
     final categoryRows = <String, QueryRow>{};
     for (final row in rows) {
@@ -125,6 +126,10 @@ class SqliteStatisticsRepository implements StatisticsRepository {
           followUp++;
         }
         pendingMicros += micros;
+        final range = PendingAgeRange.forDays(
+          Duration(microseconds: micros).inDays,
+        );
+        pendingByAge.update(range, (count) => count + 1, ifAbsent: () => 1);
         if (micros > oldestMicros) oldestMicros = micros;
       }
     }
@@ -134,6 +139,7 @@ class SqliteStatisticsRepository implements StatisticsRepository {
       reported: reported,
       inFollowUp: followUp,
       resolved: resolved,
+      pendingByAge: pendingByAge,
       averagePendingAge: pending == 0
           ? null
           : Duration(microseconds: (pendingMicros / pending).round()),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../core/design_system/civic_feedback.dart';
 import '../../../core/errors/action_error_message.dart';
 import '../../../core/media/local_photo_reader.dart';
 import '../../../core/media/photo_storage.dart';
@@ -19,6 +20,7 @@ import '../domain/report_repository.dart';
 import '../domain/resolution_repository.dart';
 import 'edit_report_page.dart';
 import 'report_labels.dart';
+import 'report_status_badge.dart';
 import 'report_photo.dart';
 
 class ReportManagementPage extends StatelessWidget {
@@ -258,7 +260,16 @@ class _ManagementState extends State<_Management> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(report.title, style: Theme.of(context).textTheme.titleLarge),
-              Text('Estado: ${ReportLabels.status(report.status)}'),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ReportStatusBadge(report.status),
+              ),
+              const SizedBox(height: 12),
+              const CivicNotice(
+                icon: Icons.fact_check_rounded,
+                text: 'Revisión simulada en este dispositivo',
+              ),
               if (report.isDemo)
                 const Text(
                   'Demostración: las acciones y revisiones se identificarán como demo.',
@@ -305,7 +316,7 @@ class _ManagementState extends State<_Management> {
                 ),
               if (view.isAdmin) ...[
                 const Divider(),
-                const Text('Administración'),
+                const Text('Administración local'),
                 if (report.status == ReportStatus.reported)
                   FilledButton(
                     onPressed: busy

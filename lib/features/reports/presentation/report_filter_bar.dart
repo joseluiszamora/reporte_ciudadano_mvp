@@ -2,19 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../categories/domain/category_repository.dart';
+import '../../categories/presentation/category_icon.dart';
 import '../domain/report_filter.dart';
 import '../domain/report_policy.dart';
 import 'report_filter_cubit.dart';
 import 'report_labels.dart';
+import 'report_status_badge.dart';
 
 class ReportFilterBar extends StatefulWidget {
   const ReportFilterBar({
     super.key,
     required this.filters,
     required this.categories,
+    this.quickFilters = false,
   });
   final ReportFilterCubit filters;
   final CategoryRepository categories;
+  final bool quickFilters;
   @override
   State<ReportFilterBar> createState() => _ReportFilterBarState();
 }
@@ -22,6 +26,7 @@ class ReportFilterBar extends StatefulWidget {
 class _ReportFilterBarState extends State<ReportFilterBar> {
   late final search = TextEditingController(text: widget.filters.state.search);
   bool opening = false;
+  late final categories = widget.categories.watchCategories();
   @override
   void dispose() {
     search.dispose();
@@ -98,10 +103,71 @@ class _ReportFilterBarState extends State<ReportFilterBar> {
                     ),
                 ],
               ),
-              if (filter.isActive && View.of(context).viewInsets.bottom == 0)
-                const Padding(
-                  padding: EdgeInsets.only(top: 4),
-                  child: Text('Filtros compartidos con el mapa y la lista.'),
+              if (widget.quickFilters)
+                StreamBuilder<List<ReportCategory>>(
+                  stream: categories,
+                  builder: (context, snapshot) {
+                    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          for (final status in ReportStatus.values)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                avatar: Icon(
+                                  status.icon,
+                                  size: 18,
+                                  color: status.colors(context).foreground,
+                                ),
+                                label: Text(ReportLabels.status(status)),
+                                selected: status == filter.status,
+                                onSelected: (selected) => widget.filters.apply(
+                                  ReportFilter(
+                                    status: selected ? status : null,
+                                    search: filter.search,
+                                    categoryId: filter.categoryId,
+                                    from: filter.from,
+                                    until: filter.until,
+                                    order: filter.order,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          for (final category
+                              in snapshot.data ?? const <ReportCategory>[])
+                            if (category.isActive)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: FilterChip(
+                                  avatar: Icon(
+                                    categoryIcon(category.iconKey),
+                                    size: 18,
+                                  ),
+                                  label: Text(category.name),
+                                  selected: category.id == filter.categoryId,
+                                  onSelected: (selected) =>
+                                      widget.filters.apply(
+                                        ReportFilter(
+                                          categoryId: selected
+                                              ? category.id
+                                              : null,
+                                          search: filter.search,
+                                          status: filter.status,
+                                          from: filter.from,
+                                          until: filter.until,
+                                          order: filter.order,
+                                        ),
+                                      ),
+                                ),
+                              ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
             ],
           ),
@@ -221,6 +287,10 @@ class _FilterSheetState extends State<_FilterSheet> {
               DropdownMenuItem(
                 value: ReportOrder.oldest,
                 child: Text('Más antiguos'),
+              ),
+              DropdownMenuItem(
+                value: ReportOrder.longestPending,
+                child: Text('Más tiempo pendiente'),
               ),
             ],
             onChanged: (value) => setState(() => order = value!),

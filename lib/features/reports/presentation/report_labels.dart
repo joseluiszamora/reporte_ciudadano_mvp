@@ -17,10 +17,12 @@ abstract final class ReportLabels {
     final raw = (resolved ?? now).difference(created);
     final duration = raw.isNegative ? Duration.zero : raw;
     final value = duration.inDays > 0
-        ? '${duration.inDays} ${duration.inDays == 1 ? 'día' : 'días'} ${duration.inHours % 24} h'
+        ? '${duration.inDays} ${duration.inDays == 1 ? 'día' : 'días'}'
         : duration.inHours > 0
         ? '${duration.inHours} h'
-        : '${duration.inMinutes} min';
-    return '${resolved == null ? 'Tiempo pendiente' : 'Resuelto en'}: $value';
+        : duration.inMinutes > 0
+        ? '${duration.inMinutes} min'
+        : 'menos de 1 min';
+    return resolved == null ? '$value pendiente' : 'Resuelto en $value';
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/design_system/civic_feedback.dart';
 import '../../../core/location/location_gateway.dart';
 import 'location_cubit.dart';
 
@@ -44,21 +45,22 @@ class LocationControls extends StatelessWidget {
           children: [
             OutlinedButton.icon(
               onPressed: state.busy ? null : cubit.locate,
-              icon: const Icon(Icons.my_location),
+              icon: const Icon(Icons.my_location_rounded),
               label: Text(state.busy ? 'Buscando ubicación…' : 'Mi ubicación'),
             ),
             if (onCoordinates != null)
               TextButton.icon(
                 onPressed: onCoordinates,
-                icon: const Icon(Icons.edit_location_alt_outlined),
+                icon: const Icon(Icons.edit_location_alt_rounded),
                 label: const Text('Coordenadas'),
               ),
           ],
         ),
         if (state.error != null)
-          Text(
-            state.error!,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          CivicNotice(
+            icon: Icons.location_disabled_rounded,
+            text: state.error!,
+            isError: true,
           ),
         if (state.failure == LocationFailure.deniedForever)
           TextButton(

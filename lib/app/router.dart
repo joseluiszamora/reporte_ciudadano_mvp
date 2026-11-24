@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../shared/widgets/project_shell.dart';
+import '../core/theme/theme_settings.dart';
 import '../features/categories/domain/category_repository.dart';
 import '../core/media/local_photo_reader.dart';
 import '../features/reports/domain/report_read_repository.dart';
@@ -50,6 +51,7 @@ GoRouter createAppRouter(
   required PhotoStorage storage,
   required PhotoSelection selection,
   required ReportDraftStore drafts,
+  ThemeSettings? theme,
   TileProviderFactory tiles = MapTiles.create,
 }) {
   return GoRouter(
@@ -67,6 +69,7 @@ GoRouter createAppRouter(
               reports: reports,
               location: location,
               tiles: tiles,
+              photos: photos,
               filters: filters,
               categories: categories,
               onOpenReport: (id) =>
@@ -82,19 +85,20 @@ GoRouter createAppRouter(
               photos: photos,
               onOpen: (id) =>
                   context.push('/reporte/${Uri.encodeComponent(id)}'),
-              onCreate: () => context.go('/nuevo'),
+              onCreate: () => context.push('/nuevo'),
             ),
           ),
           GoRoute(
             path: '/nuevo',
             builder: (context, _) => BlocBuilder<AuthCubit, AuthState>(
               bloc: auth,
+              buildWhen: (previous, next) =>
+                  previous.initializing != next.initializing,
               builder: (context, session) {
-                if (session.user == null) {
+                if (session.initializing) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 return NewReportPage(
-                  key: ValueKey(session.user!.uid),
                   auth: auth,
                   categories: categories,
                   reports: writeReports,
@@ -116,7 +120,7 @@ GoRouter createAppRouter(
               repository: statistics,
               categories: categories,
               filters: statisticsFilters,
-              onCreate: () => context.go('/nuevo'),
+              onCreate: () => context.push('/nuevo'),
             ),
           ),
           GoRoute(
@@ -125,6 +129,7 @@ GoRouter createAppRouter(
               auth: auth,
               reports: myReports,
               loadDemoReports: loadDemoReports,
+              theme: theme,
             ),
           ),
         ],

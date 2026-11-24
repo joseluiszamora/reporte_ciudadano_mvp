@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/design_system/civic_feedback.dart';
+import '../../reports/domain/report_policy.dart';
+import '../../reports/presentation/report_status_badge.dart';
+
 import '../../categories/domain/category_repository.dart';
 import '../../reports/presentation/report_labels.dart';
 import '../domain/statistics_repository.dart';
@@ -106,22 +110,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
           key: const PageStorageKey('statistics-scroll'),
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-              'Estadísticas locales',
-              style: Theme.of(context).textTheme.headlineSmall,
+            const CivicNotice(
+              icon: Icons.smartphone_rounded,
+              text: 'Datos locales de este dispositivo',
             ),
             const SizedBox(height: 8),
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(12),
-                child: Text(
-                  'Estadísticas locales; no representan a toda la ciudad',
-                ),
-              ),
-            ),
-            const Text(
-              'Reportes guardados en este teléfono, de todas las cuentas locales. Los eliminados no se incluyen.',
-            ),
+            const Text('Estadísticas locales; no representan a toda la ciudad'),
             const SizedBox(height: 16),
             Builder(
               builder: (context) {
@@ -246,13 +240,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
                     ),
                     if (data.demo != null) ...[
                       const SizedBox(height: 20),
-                      const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Text(
-                            'Datos de demostración: evidencia y revisión simuladas. No se suman a los indicadores locales.',
-                          ),
-                        ),
+                      const DemoBanner(),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Los ejemplos y su revisión simulada se muestran por separado.',
                       ),
                       _StatisticsGroupView(group: data.demo!, demo: true),
                     ],
@@ -297,23 +288,42 @@ class _StatisticsGroupView extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final metric in {
-                'Total': group.total,
-                'Reportados': group.reported,
-                'En seguimiento': group.inFollowUp,
-                'Solucionados': group.resolved,
-              }.entries)
+              for (final metric in [
+                (label: 'Total', value: group.total, status: null),
+                (
+                  label: 'Reportados',
+                  value: group.reported,
+                  status: ReportStatus.reported,
+                ),
+                (
+                  label: 'En seguimiento',
+                  value: group.inFollowUp,
+                  status: ReportStatus.inFollowUp,
+                ),
+                (
+                  label: 'Solucionados',
+                  value: group.resolved,
+                  status: ReportStatus.resolved,
+                ),
+              ])
                 SizedBox(
                   width: width,
                   child: Card(
-                    key: ValueKey('${demo ? 'demo' : 'local'}:${metric.key}'),
+                    key: ValueKey('${demo ? 'demo' : 'local'}:${metric.label}'),
                     margin: EdgeInsets.zero,
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(metric.key),
+                          Icon(
+                            metric.status?.icon ?? Icons.bar_chart_rounded,
+                            color:
+                                metric.status?.colors(context).foreground ??
+                                Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(metric.label),
                           Text(
                             '${metric.value}',
                             style: Theme.of(context).textTheme.headlineMedium,
@@ -366,6 +376,19 @@ class _StatisticsGroupView extends StatelessWidget {
         Text(
           'Pendientes: ${group.pending}. Incluye Reportado y En seguimiento; se cuenta desde la creación y se actualiza cada minuto.',
         ),
+        if (group.pendingByAge.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            'Pendientes por antigüedad',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          for (final range in PendingAgeRange.values)
+            _MetricBar(
+              label: range.label,
+              value: group.pendingByAge[range] ?? 0,
+              total: group.pending,
+            ),
+        ],
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: const Text('Tiempo promedio de resolución'),
@@ -383,26 +406,47 @@ class _StatisticsGroupView extends StatelessWidget {
           'Reportes por categoría',
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        for (final category in group.categories)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  '${category.name}${category.isActive ? '' : ' (inactiva)'}: ${category.total}',
-                ),
-                const SizedBox(height: 4),
-                ExcludeSemantics(
-                  child: LinearProgressIndicator(
-                    value: category.total / group.total,
-                    minHeight: 8,
-                  ),
-                ),
-              ],
-            ),
+        for (final category
+            in [...group.categories]..sort((a, b) {
+              final byTotal = b.total.compareTo(a.total);
+              return byTotal == 0 ? a.name.compareTo(b.name) : byTotal;
+            }))
+          _MetricBar(
+            label: '${category.name}${category.isActive ? '' : ' (inactiva)'}',
+            value: category.total,
+            total: group.total,
           ),
       ],
     ],
+  );
+}
+
+class _MetricBar extends StatelessWidget {
+  const _MetricBar({
+    required this.label,
+    required this.value,
+    required this.total,
+  });
+
+  final String label;
+  final int value;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('$label: $value'),
+        const SizedBox(height: 4),
+        ExcludeSemantics(
+          child: LinearProgressIndicator(
+            value: total == 0 ? 0 : value / total,
+            minHeight: 8,
+          ),
+        ),
+      ],
+    ),
   );
 }

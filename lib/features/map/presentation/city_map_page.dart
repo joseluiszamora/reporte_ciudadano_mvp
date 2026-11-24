@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/design_system/civic_feedback.dart';
 import '../../../core/location/geo_point.dart';
+import '../../../core/media/local_photo_reader.dart';
 import '../../../core/location/location_gateway.dart';
-import '../../reports/domain/report_policy.dart';
+import '../../reports/presentation/report_labels.dart';
+import '../../reports/presentation/report_photo.dart';
+import '../../reports/presentation/report_status_badge.dart';
 import '../domain/map_report_repository.dart';
 import 'location_controls.dart';
 import 'location_cubit.dart';
@@ -24,6 +28,7 @@ class CityMapPage extends StatefulWidget {
     this.filters,
     this.categories,
     this.onOpenReport,
+    this.photos,
   });
   final MapReportRepository reports;
   final LocationGateway location;
@@ -31,6 +36,7 @@ class CityMapPage extends StatefulWidget {
   final ReportFilterCubit? filters;
   final CategoryRepository? categories;
   final ValueChanged<String>? onOpenReport;
+  final LocalPhotoReader? photos;
   @override
   State<CityMapPage> createState() => _CityMapPageState();
 }
@@ -69,46 +75,82 @@ class _CityMapPageState extends State<CityMapPage> {
     if (mounted && point != null) cubit.selectManual(point);
   }
 
-  void showReport(MapReport report) {
-    if (widget.onOpenReport != null) {
-      widget.onOpenReport!(report.id);
-      return;
-    }
-    final status = switch (report.status) {
-      ReportStatus.reported => 'Reportado',
-      ReportStatus.inFollowUp => 'En seguimiento',
-      ReportStatus.resolved => 'Solucionado',
-    };
-    showModalBottomSheet<void>(
+  Future<void> showReport(MapReport report) async {
+    final open = await showModalBottomSheet<bool>(
       context: context,
+      isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(report.title, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              Text(report.category),
-              Text('Estado: $status'),
-              Text('Coordenadas: ${report.point.label}'),
-              if (report.isDemo) const Text('Reporte de demostración'),
-              const SizedBox(height: 12),
-              const Text('Datos locales de este teléfono.'),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cerrar'),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * .75,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (report.isDemo) ...[
+                  const DemoBanner(),
+                  const SizedBox(height: 12),
+                ],
+                if (report.photoPath != null && widget.photos != null) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child: ReportPhoto(
+                        path: report.photoPath,
+                        reader: widget.photos!,
+                        expandable: false,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                Text(report.category),
+                Text(
+                  report.title,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ReportStatusBadge(report.status),
+                    if (report.createdAt case final created?)
+                      Text(
+                        ReportLabels.elapsed(
+                          created,
+                          report.resolvedAt,
+                          DateTime.now(),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(report.address ?? report.point.label),
+                const SizedBox(height: 16),
+                if (widget.onOpenReport != null)
+                  FilledButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: const Text('Ver detalle'),
+                  )
+                else
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cerrar'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
+    if (open == true && mounted) widget.onOpenReport?.call(report.id);
   }
 
   @override
@@ -120,64 +162,105 @@ class _CityMapPageState extends State<CityMapPage> {
       bloc: cubit,
       builder: (context, location) => StreamBuilder<List<MapReport>>(
         stream: source(filter),
-        builder: (context, snapshot) => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Mapa de El Alto',
-                      style: Theme.of(context).textTheme.titleLarge,
+        builder: (context, snapshot) => LayoutBuilder(
+          builder: (context, constraints) {
+            final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+            return Column(
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: constraints.maxHeight * .5,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        if (!keyboard)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Mapa de El Alto',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: choosePoint,
+                                  tooltip: 'Elegir ubicación',
+                                  icon: const Icon(
+                                    Icons.edit_location_alt_rounded,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (widget.categories != null)
+                          ReportFilterBar(
+                            filters: filters,
+                            categories: widget.categories!,
+                            quickFilters: true,
+                          ),
+                        if (!keyboard && snapshot.hasError)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'No se pudieron cargar los reportes.',
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      setState(() => active = null),
+                                  child: const Text('Reintentar'),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (!snapshot.hasData && !snapshot.hasError)
+                          const LinearProgressIndicator()
+                        else if (!keyboard && snapshot.data?.isEmpty == true)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            child: Text(
+                              filter.isActive
+                                  ? 'No hay reportes que coincidan con los filtros.'
+                                  : 'Aún no hay reportes locales en el mapa.',
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: choosePoint,
-                    icon: const Icon(Icons.add_location_alt_outlined),
-                    label: const Text('Elegir ubicación'),
+                ),
+                Expanded(
+                  child: MapCanvas(
+                    focus: location.point,
+                    focusRevision: location.focusRevision,
+                    selected: location.point,
+                    reports: snapshot.data ?? const [],
+                    onReportTap: showReport,
+                    tiles: widget.tiles,
                   ),
-                ],
-              ),
-            ),
-            if (widget.categories != null)
-              ReportFilterBar(filters: filters, categories: widget.categories!),
-            if (snapshot.hasError)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'No se pudieron cargar los reportes locales. Vuelve a entrar al mapa para reintentar.',
                 ),
-              ),
-            if (snapshot.hasData && snapshot.data!.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('Aún no hay reportes locales en el mapa.'),
-              ),
-            Expanded(
-              flex: 3,
-              child: MapCanvas(
-                focus: location.point,
-                focusRevision: location.focusRevision,
-                selected: location.point,
-                reports: snapshot.data ?? const [],
-                onReportTap: showReport,
-                tiles: widget.tiles,
-              ),
-            ),
-            if (View.of(context).viewInsets.bottom == 0)
-              Flexible(
-                flex:
-                    location.error != null ||
-                        (location.point?.isFarFromElAlto ?? false)
-                    ? 2
-                    : 0,
-                fit: FlexFit.tight,
-                child: SingleChildScrollView(
-                  child: LocationControls(cubit: cubit, state: location),
-                ),
-              ),
-          ],
+                if (!keyboard)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight * .28,
+                    ),
+                    child: SingleChildScrollView(
+                      child: LocationControls(cubit: cubit, state: location),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     ),

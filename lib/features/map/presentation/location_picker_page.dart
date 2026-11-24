@@ -47,7 +47,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Text(
-                'Toca el mapa para colocar o corregir el pin. También puedes introducir las coordenadas.',
+                'Toca el mapa para colocar el pin y arrástralo para ajustarlo. También puedes introducir las coordenadas.',
               ),
             ),
             Expanded(
@@ -82,7 +82,7 @@ class _LocationPickerPageState extends State<LocationPickerPage> {
                   onPressed: state.point == null
                       ? null
                       : () => Navigator.pop(context, state.point),
-                  icon: const Icon(Icons.check),
+                  icon: const Icon(Icons.check_rounded),
                   label: const Text('Confirmar ubicación'),
                 ),
               ),

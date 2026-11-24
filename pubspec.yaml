@@ -41,6 +41,7 @@ dependencies:
   drift: ^2.35.4
   drift_flutter: ^0.3.1
   uuid: ^4.6.0
+  shared_preferences: ^2.5.5
   path_provider: ^2.1.6
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
@@ -76,6 +77,11 @@ flutter:
   assets:
     - assets/database/schema_v1.sql
     - assets/database/schema_v2.sql
+    - assets/fonts/Inter-OFL.txt
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -17,7 +17,8 @@ import '../features/map/data/sqlite_map_report_repository.dart';
 import '../features/map/presentation/map_tiles.dart';
 
 import 'router.dart';
-import 'theme/app_theme.dart';
+import '../core/theme/app_theme.dart';
+import '../core/theme/theme_settings.dart';
 import '../core/database/local_session.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/data/firebase_google_gateway.dart';
@@ -47,6 +48,7 @@ class CitizenReportsApp extends StatefulWidget {
     this.photoStorage,
     this.photoSelection,
     this.draftStore,
+    this.initialThemeMode = ThemeMode.system,
   });
   final AppDatabase? database;
   final LocationGateway? location;
@@ -56,6 +58,7 @@ class CitizenReportsApp extends StatefulWidget {
   final PhotoStorage? photoStorage;
   final PhotoSelection? photoSelection;
   final ReportDraftStore? draftStore;
+  final ThemeMode initialThemeMode;
   @override
   State<CitizenReportsApp> createState() => _CitizenReportsAppState();
 }
@@ -68,6 +71,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
   late final AuthRepository repository;
   late final AuthCubit auth;
   late final AuthRouterRefresh authRefresh;
+  late final theme = ThemeSettings(initialMode: widget.initialThemeMode);
   @override
   void initState() {
     super.initState();
@@ -101,6 +105,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
       selection: widget.photoSelection ?? AndroidPhotoSelection(),
       drafts: widget.draftStore ?? PrivateReportDraftStore(),
       tiles: widget.tiles,
+      theme: theme,
     );
     unawaited(auth.initialize());
   }
@@ -109,6 +114,7 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
   void dispose() {
     router.dispose();
     authRefresh.dispose();
+    theme.dispose();
     filters.close();
     statisticsFilters.close();
     unawaited(
@@ -121,13 +127,18 @@ class _CitizenReportsAppState extends State<CitizenReportsApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-    title: 'Reportes ciudadanos · El Alto',
-    debugShowCheckedModeBanner: false,
-    theme: AppTheme.light,
-    locale: const Locale('es', 'BO'),
-    supportedLocales: const [Locale('es', 'BO')],
-    localizationsDelegates: GlobalMaterialLocalizations.delegates,
-    routerConfig: router,
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: theme,
+    builder: (context, _) => MaterialApp.router(
+      title: 'Reportes ciudadanos · El Alto',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: theme.mode,
+      locale: const Locale('es', 'BO'),
+      supportedLocales: const [Locale('es', 'BO')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      routerConfig: router,
+    ),
   );
 }

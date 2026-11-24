@@ -35,7 +35,8 @@ class ReportComposerCubit extends Cubit<ComposerState> {
     required this.selection,
     required this.drafts,
   }) : super(ComposerState(draft: ReportComposition(), loading: true));
-  final String uid;
+  final String? uid;
+  String get draftOwner => uid ?? '\u0000guest';
   final String? Function() currentUid;
   final ReportRepository reports;
   final PhotoStorage storage;
@@ -45,7 +46,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
   bool committed = false;
   bool closing = false;
   void checkSession() {
-    if (currentUid() != uid) {
+    if (uid != null && currentUid() != uid) {
       throw const RepositoryException(
         RepositoryError.unauthenticated,
         'La sesión cambió. Vuelve a iniciar sesión.',
@@ -79,7 +80,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
   Future<void> flush() {
     if (committed) return writes;
     final draft = state.draft;
-    final work = drafts.save(uid, draft);
+    final work = drafts.save(draftOwner, draft);
     writes = work.catchError((Object _) {});
     return work;
   }
@@ -98,12 +99,12 @@ class ReportComposerCubit extends Cubit<ComposerState> {
   Future<void> initialize() async {
     try {
       checkSession();
-      final draft = await drafts.load(uid) ?? state.draft;
+      final draft = await drafts.load(draftOwner) ?? state.draft;
       final existing = await reports.getReport(draft.requestId);
       if (existing != null) {
         committed = true;
         try {
-          await drafts.delete(uid);
+          await drafts.delete(draftOwner);
         } catch (_) {
           /* Still open the already committed report. */
         }
@@ -111,11 +112,11 @@ class ReportComposerCubit extends Cubit<ComposerState> {
         return;
       }
       publish(draft, busy: true);
-      if (await drafts.pendingOwner() == uid) {
+      if (await drafts.pendingOwner() == draftOwner) {
         try {
           await addPaths(await selection.recover());
         } finally {
-          await drafts.clearPicker(uid);
+          await drafts.clearPicker(draftOwner);
         }
       } else {
         publish(draft);
@@ -131,7 +132,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
     try {
       checkSession();
       await flush();
-      await drafts.markPicker(uid);
+      await drafts.markPicker(draftOwner);
       await addPaths(
         await selection.pick(
           camera: camera,
@@ -142,7 +143,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
       publish(state.draft, message: error(failure));
     } finally {
       try {
-        await drafts.clearPicker(uid);
+        await drafts.clearPicker(draftOwner);
       } catch (_) {
         /* Existing draft remains recoverable. */
       }
@@ -158,7 +159,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
       checkSession();
       if (closing || isClosed) return;
       final photo = await storage.import(source);
-      if (closing || isClosed || currentUid() != uid) {
+      if (closing || isClosed || (uid != null && currentUid() != uid)) {
         await storage.remove(photo.relativePath);
         checkSession();
         return;
@@ -184,7 +185,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
     }
   }
 
-  String? validate() {
+  String? validateProblem() {
     final draft = state.draft;
     if (draft.categoryId == null) return 'Elige una categoría.';
     if (InputLimits.text(
@@ -203,6 +204,13 @@ class ReportComposerCubit extends Cubit<ComposerState> {
         null) {
       return 'La descripción debe tener entre 20 y 2.000 caracteres.';
     }
+    return null;
+  }
+
+  String? validate() {
+    final problem = validateProblem();
+    if (problem != null) return problem;
+    final draft = state.draft;
     if (draft.photos.isEmpty) return 'Adjunta al menos una fotografía.';
     if (draft.point == null) return 'Elige la ubicación del problema.';
     return null;
@@ -234,11 +242,24 @@ class ReportComposerCubit extends Cubit<ComposerState> {
     publish(state.draft, busy: true);
     try {
       checkSession();
+      final actor = currentUid();
+      if (actor == null) {
+        throw const RepositoryException(
+          RepositoryError.unauthenticated,
+          'Inicia sesión para guardar el reporte.',
+        );
+      }
       await flush();
+      if (actor != currentUid()) {
+        throw const RepositoryException(
+          RepositoryError.unauthenticated,
+          'La sesión cambió. Vuelve a iniciar sesión.',
+        );
+      }
       final id = await reports.create(state.draft.toReport());
       committed = true;
       try {
-        await drafts.delete(uid);
+        await drafts.delete(draftOwner);
       } catch (_) {
         /* requestId makes retry/recovery idempotent. */
       }
@@ -260,7 +281,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
     try {
       await writes;
       final photos = state.draft.photos;
-      await drafts.delete(uid);
+      await drafts.delete(draftOwner);
       for (final photo in photos) {
         await storage.remove(photo.relativePath);
       }
@@ -275,7 +296,7 @@ class ReportComposerCubit extends Cubit<ComposerState> {
   Future<void> close() async {
     closing = true;
     try {
-      if (!committed) await flush();
+      await writes;
     } catch (_) {
       /* Screen already closed; persisted photos stay private. */
     }

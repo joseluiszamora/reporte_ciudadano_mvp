@@ -194,8 +194,8 @@ void main() {
       find.byTooltip('Bache en avenida · Baches · Reportado · Demostración'),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Estado: Reportado'), findsOneWidget);
-    expect(find.text('Reporte de demostración'), findsOneWidget);
+    expect(find.text('Reportado'), findsOneWidget);
+    expect(find.text('Datos de demostración'), findsOneWidget);
   });
 
   testWidgets('failed tiles show retry and retry recreates the provider', (

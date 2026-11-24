@@ -57,7 +57,7 @@ class LoginPage extends StatelessWidget {
                       state.initializing || state.busy || state.issue != null
                       ? null
                       : auth.signIn,
-                  icon: const Icon(Icons.login),
+                  icon: const Icon(Icons.login_rounded),
                   label: const Text('Continuar con Google'),
                 ),
                 TextButton(
@@ -174,9 +174,31 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Text(
-        user.publicName.isEmpty ? 'Completa tu perfil' : user.publicName,
-        style: Theme.of(context).textTheme.headlineSmall,
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 28,
+            foregroundImage: user.photoUrl?.startsWith('https://') ?? false
+                ? NetworkImage(user.photoUrl!)
+                : null,
+            onForegroundImageError:
+                user.photoUrl?.startsWith('https://') ?? false
+                ? (_, _) {}
+                : null,
+            child: const Icon(Icons.person_rounded),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              user.googleName ??
+                  (user.publicName.isEmpty
+                      ? 'Completa tu perfil'
+                      : user.publicName),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+        ],
       ),
       if (user.role == UserRole.admin) const Text('Administrador local'),
       const SizedBox(height: 16),
@@ -188,7 +210,7 @@ class ProfileHeader extends StatelessWidget {
       const SizedBox(height: 12),
       TextButton.icon(
         onPressed: auth.state.busy ? null : auth.signOut,
-        icon: const Icon(Icons.logout),
+        icon: const Icon(Icons.logout_rounded),
         label: const Text('Cerrar sesión'),
       ),
     ],

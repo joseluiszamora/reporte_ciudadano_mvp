@@ -23,6 +23,12 @@ class ReportShare {
     ].join('\n');
   }
 
-  static Future<void> send(String summary) =>
-      _channel.invokeMethod<void>('shareText', {'text': summary});
+  static Future<void> send(
+    String summary, {
+    Uint8List? photo,
+    String? mimeType,
+  }) => _channel.invokeMethod<void>(
+    photo == null ? 'shareText' : 'sharePhoto',
+    {'text': summary, 'photo': ?photo, 'mimeType': ?mimeType},
+  );
 }

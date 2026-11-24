@@ -80,13 +80,15 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.list_alt));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Reportes'),
+        );
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField), 'basura');
         await tester.pumpAndSettle();
         expect(find.text('Basura avenida Central'), findsOneWidget);
         expect(find.text('Bache avenida Principal'), findsNothing);
-        await tester.tap(find.byIcon(Icons.map_outlined));
+        await tester.tap(find.widgetWithText(NavigationDestination, 'Mapa'));
         await tester.pumpAndSettle();
         expect(
           tester.widget<TextField>(find.byType(TextField)).controller!.text,
@@ -97,6 +99,9 @@ void main() {
             'Basura avenida Central · Basura y acumulación de residuos · Reportado',
           ),
         );
+        await tester.pumpAndSettle();
+        await tester.ensureVisible(find.text('Ver detalle'));
+        await tester.tap(find.text('Ver detalle'));
         await tester.pumpAndSettle();
         expect(find.text('Detalle del reporte'), findsOneWidget);
         expect(find.text('Autor: Ciudadano anónimo'), findsOneWidget);
@@ -114,7 +119,9 @@ void main() {
           tester.widget<TextField>(find.byType(TextField)).controller!.text,
           'basura',
         );
-        await tester.tap(find.byIcon(Icons.list_alt));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Reportes'),
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.byTooltip('Limpiar filtros'));
         await tester.pumpAndSettle();
@@ -147,7 +154,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.list_alt));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Reportes'),
+        );
         await tester.pumpAndSettle();
         await tester.tap(find.byTooltip('Filtrar y ordenar'));
         await tester.pumpAndSettle();

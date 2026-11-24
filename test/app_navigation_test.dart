@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:reporte_ciudadano_mvp/core/database/app_database.dart';
 import 'package:reporte_ciudadano_mvp/app/app.dart';
 
+import 'support/composer_fakes.dart';
 import 'support/map_fakes.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.list_alt));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Reportes'));
     await tester.pumpAndSettle();
     expect(
       find.text('Todavía no hay reportes en este teléfono.'),
@@ -34,9 +35,9 @@ void main() {
     expect(find.text('Baches y daños en las calles'), findsOneWidget);
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.list_alt));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Reportes'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ver categorías'));
     await tester.pumpAndSettle();
@@ -56,22 +57,25 @@ void main() {
         CitizenReportsApp(
           database: db,
           location: location,
+          draftStore: MemoryDrafts(),
           tiles: TestTiles.new,
         ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Mapa de El Alto'), findsOneWidget);
       expect(location.calls, 0);
-      await tester.tap(find.byIcon(Icons.person_outline));
+      await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
       await tester.pumpAndSettle();
       expect(
         find.textContaining('Estás explorando como visitante'),
         findsOneWidget,
       );
-      await tester.tap(find.byIcon(Icons.add_circle_outline));
+      await tester.tap(find.widgetWithText(NavigationDestination, 'Mapa'));
       await tester.pumpAndSettle();
-      expect(find.text('Iniciar sesión'), findsOneWidget);
-      expect(find.text('Continuar con Google'), findsOneWidget);
+      await tester.tap(find.text('Reportar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tipo de problema'), findsOneWidget);
+      expect(find.text('Continuar con Google'), findsNothing);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.runAsync(db.close);
     },

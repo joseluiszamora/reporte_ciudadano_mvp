@@ -59,10 +59,12 @@ class ManagementHarness {
   }
 
   Future<void> manage(WidgetTester tester) async {
-    await tester.tap(find.byIcon(Icons.list_alt));
+    await tester.tap(find.widgetWithText(NavigationDestination, 'Reportes'));
     await tester.pumpAndSettle();
+    await showText(tester, 'Bache en avenida');
     await tester.tap(find.text('Bache en avenida'));
     await tester.pumpAndSettle();
+    await showText(tester, 'Acciones y propuestas');
     await tester.tap(find.text('Acciones y propuestas'));
     await tester.pumpAndSettle();
     expect(find.text('Gestionar reporte'), findsOneWidget);
@@ -270,8 +272,9 @@ void main() {
             reason: 'Duplicado para comprobación de auditoría',
           ),
         );
-        await tester.tap(find.byIcon(Icons.person_outline));
+        await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
         await tester.pumpAndSettle();
+        await showText(tester, 'Informe de acciones');
         await tester.tap(find.text('Informe de acciones'));
         await tester.pumpAndSettle();
         await tester.enterText(

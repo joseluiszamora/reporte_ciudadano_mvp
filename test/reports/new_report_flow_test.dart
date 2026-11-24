@@ -41,7 +41,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await tester.tap(find.text('Reportar'));
         await tester.pumpAndSettle();
         await tester.enterText(
           find.widgetWithText(TextField, 'Título'),
@@ -88,12 +88,12 @@ void main() {
     },
   );
   testWidgets(
-    'authenticated user resumes draft, chooses point, previews and publishes anonymous report',
+    'visitor resumes draft, signs in during review and saves an anonymous report',
     (tester) async {
       final fixture = LocalFixture();
       await tester.runAsync(fixture.initialize);
       final gateway = TestIdentityGateway(
-        current: const VerifiedIdentity(uid: 'owner'),
+        next: const VerifiedIdentity(uid: 'owner'),
       );
       final auth = GoogleAuthRepository(fixture.db, gateway);
       final drafts = MemoryDrafts();
@@ -129,7 +129,7 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await tester.tap(find.text('Reportar'));
         await tester.pumpAndSettle();
         await tester.tap(find.byType(DropdownButtonFormField<String>));
         await tester.pumpAndSettle();
@@ -144,9 +144,9 @@ void main() {
           find.widgetWithText(TextField, 'Descripción'),
           'Un bache dificulta el paso de vehículos en la avenida.',
         );
-        await tester.tap(find.byIcon(Icons.person_outline));
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await tester.tap(find.text('Reportar'));
         await tester.pumpAndSettle();
         expect(
           tester
@@ -155,6 +155,15 @@ void main() {
               .text,
           'Bache en la avenida principal',
         );
+        await show('Continuar');
+        await tester.tap(find.text('Continuar'));
+        await tester.pumpAndSettle();
+        await show('Galería');
+        await tester.tap(find.text('Galería'));
+        await tester.pumpAndSettle();
+        await show('Continuar');
+        await tester.tap(find.text('Continuar'));
+        await tester.pumpAndSettle();
         await show('Elegir ubicación');
         await tester.tap(find.text('Elegir ubicación'));
         await tester.pumpAndSettle();
@@ -172,15 +181,13 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Confirmar ubicación'));
         await tester.pumpAndSettle();
-        await show('Galería');
-        await tester.tap(find.text('Galería'));
-        await tester.pumpAndSettle();
         await show('Revisar reporte');
         await tester.tap(find.text('Revisar reporte'));
         await tester.pumpAndSettle();
         await tester.drag(find.byType(ListView).first, const Offset(0, 1000));
         await tester.pumpAndSettle();
         expect(find.text('Vista previa del reporte'), findsOneWidget);
+        await show('Autor: Ciudadano anónimo');
         expect(find.text('Autor: Ciudadano anónimo'), findsOneWidget);
         expect(
           await tester.runAsync(
@@ -188,15 +195,22 @@ void main() {
           ),
           isEmpty,
         );
-        await show('Publicar reporte');
-        await tester.tap(find.text('Publicar reporte'));
+        expect(auth.currentUser, isNull);
+        expect(find.text('Guardar reporte'), findsNothing);
+        await show('Continuar con Google');
+        await tester.tap(find.text('Continuar con Google'));
+        await tester.pumpAndSettle();
+        expect(auth.currentUser?.uid, 'owner');
+        expect(gateway.signIns, 1);
+        await show('Guardar reporte');
+        await tester.tap(find.text('Guardar reporte'));
         await tester.pumpAndSettle();
         expect(find.text('Detalle del reporte'), findsOneWidget);
         expect(find.text('Autor: Ciudadano anónimo'), findsOneWidget);
         await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
         expect(find.text('Bache en la avenida principal'), findsOneWidget);
-        expect(drafts.drafts['owner'], isNull);
+        expect(drafts.drafts, isEmpty);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
         var closed = false;

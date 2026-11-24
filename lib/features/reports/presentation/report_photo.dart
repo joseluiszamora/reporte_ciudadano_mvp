@@ -41,22 +41,25 @@ class _ReportPhotoState extends State<ReportPhoto> {
   }
 
   Widget missing() => Center(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.broken_image_outlined),
-        const Text('Fotografía no disponible', textAlign: TextAlign.center),
-        if (widget.expandable) ...[
-          const Text(
-            'Vuelve a adjuntarla al editar el reporte.',
-            textAlign: TextAlign.center,
-          ),
-          TextButton(
-            onPressed: () => setState(load),
-            child: const Text('Reintentar foto'),
-          ),
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.broken_image_outlined),
+          const Text('Fotografía no disponible', textAlign: TextAlign.center),
+          if (widget.expandable) ...[
+            const Text(
+              'Puedes reintentar abrir la fotografía.',
+              textAlign: TextAlign.center,
+            ),
+            TextButton(
+              onPressed: () => setState(load),
+              child: const Text('Reintentar foto'),
+            ),
+          ],
         ],
-      ],
+      ),
     ),
   );
   @override
@@ -67,7 +70,11 @@ class _ReportPhotoState extends State<ReportPhoto> {
       builder: (context, snapshot) {
         final image = snapshot.data;
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(
+              semanticsLabel: 'Cargando fotografía',
+            ),
+          );
         }
         if (image == null) return missing();
         return Semantics(

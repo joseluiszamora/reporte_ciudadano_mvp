@@ -9,7 +9,7 @@ class SqliteCategoryRepository implements CategoryRepository {
       db.watchQuery({'categories'}, () async {
         final rows = await db
             .customSelect(
-              'SELECT id,name,is_active FROM categories ORDER BY sort_order',
+              'SELECT id,name,is_active,icon_key FROM categories ORDER BY sort_order',
             )
             .get();
         return List.unmodifiable(
@@ -17,6 +17,7 @@ class SqliteCategoryRepository implements CategoryRepository {
             (row) => ReportCategory(
               id: row.read<String>('id'),
               name: row.read<String>('name'),
+              iconKey: row.read<String>('icon_key'),
               isActive: row.read<int>('is_active') == 1,
             ),
           ),

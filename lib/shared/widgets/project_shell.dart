@@ -5,80 +5,95 @@ class ProjectShell extends StatelessWidget {
   const ProjectShell({super.key, required this.path, required this.child});
   final String path;
   final Widget child;
-  static const paths = [
-    '/mapa',
-    '/reportes',
-    '/nuevo',
-    '/estadisticas',
-    '/perfil',
-  ];
+
+  static const paths = ['/mapa', '/reportes', '/estadisticas', '/perfil'];
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Reportes ciudadanos · El Alto')),
-    body: Column(
-      children: [
-        if (MediaQuery.viewInsetsOf(context).bottom == 0)
-          const MaterialBanner(
-            content: Text('Los reportes se guardan en este teléfono.'),
-            actions: [SizedBox.shrink()],
-          ),
-        Expanded(child: child),
-      ],
-    ),
-    bottomNavigationBar: NavigationBar(
-      selectedIndex: paths.indexOf(path),
-      onDestinationSelected: (index) {
-        FocusManager.instance.primaryFocus?.unfocus();
-        context.go(paths[index]);
-      },
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
-        NavigationDestination(icon: Icon(Icons.list_alt), label: 'Reportes'),
-        NavigationDestination(
-          icon: Icon(Icons.add_circle_outline),
-          label: 'Crear',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.bar_chart),
-          label: 'Estadísticas',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          label: 'Perfil',
-        ),
-      ],
-    ),
-  );
-}
-
-class FoundationPage extends StatelessWidget {
-  const FoundationPage({
-    super.key,
-    required this.title,
-    required this.icon,
-    required this.message,
-  });
-  final String title;
-  final IconData icon;
-  final String message;
-  @override
-  Widget build(BuildContext context) => Center(
-    child: SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-          ],
+  Widget build(BuildContext context) {
+    final creating = path == '/nuevo';
+    final insets = MediaQuery.viewInsetsOf(context);
+    final keyboard = insets.bottom > 0;
+    final largeText = MediaQuery.textScalerOf(context).scale(12) > 17;
+    final showReport = path == '/mapa' || path == '/reportes';
+    final title = switch (path) {
+      '/mapa' => 'Reportes Ciudadanos',
+      '/reportes' => 'Reportes',
+      '/estadisticas' => 'Estadísticas',
+      '/nuevo' => 'Nuevo reporte',
+      _ => 'Perfil',
+    };
+    return Scaffold(
+      appBar: AppBar(
+        leading: creating
+            ? BackButton(
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/mapa');
+                  }
+                },
+              )
+            : null,
+        title: Text(title),
+      ),
+      body: Builder(
+        builder: (context) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(viewInsets: insets),
+          child: SafeArea(top: false, bottom: creating, child: child),
         ),
       ),
-    ),
-  );
+      bottomNavigationBar: creating || keyboard
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showReport)
+                  Material(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () => context.push('/nuevo'),
+                          icon: const Icon(Icons.add_location_alt_rounded),
+                          label: const Text('Reportar'),
+                        ),
+                      ),
+                    ),
+                  ),
+                NavigationBar(
+                  labelBehavior: largeText
+                      ? NavigationDestinationLabelBehavior.onlyShowSelected
+                      : null,
+                  height: largeText ? 96 : null,
+                  selectedIndex: paths.indexOf(path),
+                  onDestinationSelected: (index) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    context.go(paths[index]);
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.map_rounded),
+                      label: 'Mapa',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.list_alt_rounded),
+                      label: 'Reportes',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.bar_chart_rounded),
+                      label: 'Estadísticas',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline_rounded),
+                      label: 'Perfil',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+    );
+  }
 }

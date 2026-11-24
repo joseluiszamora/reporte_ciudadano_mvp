@@ -75,7 +75,15 @@ class GoogleAuthRepository implements AuthRepository {
           await users.refreshVerifiedRole(role);
         }
         final local = await session.requireUser();
-        if (epoch == _epoch && !_blocked) _publish(local);
+        if (epoch == _epoch && !_blocked) {
+          _publish(
+            _profile(
+              local,
+              name: identity.displayName,
+              photo: identity.photoUrl,
+            ),
+          );
+        }
       } catch (_) {
         _clear();
         throw const AuthException(AuthFailure.storage);
@@ -135,8 +143,21 @@ class GoogleAuthRepository implements AuthRepository {
   @override
   Future<void> completeProfile(String publicName) async {
     await users.completePublicName(publicName);
-    _publish(await session.requireUser());
+    final local = await session.requireUser();
+    if (local.uid == _user?.uid) {
+      _publish(
+        _profile(local, name: _user?.googleName, photo: _user?.photoUrl),
+      );
+    }
   }
+
+  AppUser _profile(AppUser user, {String? name, String? photo}) => AppUser(
+    uid: user.uid,
+    publicName: user.publicName,
+    role: user.role,
+    googleName: name,
+    photoUrl: photo,
+  );
 
   @override
   Future<void> signOut() async {

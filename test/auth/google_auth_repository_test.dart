@@ -165,9 +165,10 @@ void main() {
   );
   test('guards preserve protected target and reject arbitrary return URLs', () {
     final guest = const AuthState(initializing: false);
-    final target = Uri.parse(authRedirect(guest, Uri.parse('/nuevo'))!);
+    expect(authRedirect(guest, Uri.parse('/nuevo')), isNull);
+    final target = Uri.parse(authRedirect(guest, Uri.parse('/gestionar/abc'))!);
     expect(target.path, '/acceso');
-    expect(target.queryParameters['volver'], '/nuevo');
+    expect(target.queryParameters['volver'], '/gestionar/abc');
     const partial = AuthState(
       initializing: false,
       user: AppUser(uid: 'u', publicName: ''),

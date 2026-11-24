@@ -132,7 +132,7 @@ LocalStatistics sample(int total) => LocalStatistics(
 
 void main() {
   testWidgets(
-    'visitor sees empty statistics without credentials and create CTA routes through login',
+    'visitor sees empty statistics without credentials and can begin a report',
     (tester) async {
       final f = LocalFixture();
       await tester.runAsync(
@@ -147,7 +147,9 @@ void main() {
           ),
         );
         await settle(tester);
-        await tester.tap(find.byIcon(Icons.bar_chart));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Estadísticas'),
+        );
         await settle(tester);
         expect(
           find.text('Estadísticas locales; no representan a toda la ciudad'),
@@ -160,7 +162,7 @@ void main() {
         await reveal(tester, find.text('Crear reporte'));
         await tester.tap(find.text('Crear reporte'));
         await settle(tester);
-        expect(find.text('Continuar con Google'), findsOneWidget);
+        expect(find.text('Tipo de problema'), findsOneWidget);
         expect(tester.takeException(), isNull);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
@@ -203,12 +205,16 @@ void main() {
           ),
         );
         await settle(tester);
-        await tester.tap(find.byIcon(Icons.list_alt));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Reportes'),
+        );
         await settle(tester);
         await tester.enterText(find.byType(TextField), 'avenida');
         await settle(tester);
         await reportListReady(tester);
-        await tester.tap(find.byIcon(Icons.bar_chart));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Estadísticas'),
+        );
         await settle(tester);
         await reveal(tester, find.byKey(const ValueKey('local:Total')));
         metric('local', 'Total', '1');
@@ -217,7 +223,7 @@ void main() {
         await settle(tester);
         metric('local', 'Total', '1');
         metric('demo', 'Total', '1');
-        expect(find.textContaining('Datos de demostración:'), findsOneWidget);
+        expect(find.text('Datos de demostración'), findsOneWidget);
         await reveal(tester, find.byType(DropdownButtonFormField<String>));
         await tester.tap(find.byType(DropdownButtonFormField<String>));
         await settle(tester);
@@ -225,7 +231,9 @@ void main() {
         await settle(tester);
         metric('local', 'Total', '0');
         metric('demo', 'Total', '1');
-        await tester.tap(find.byIcon(Icons.list_alt));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Reportes'),
+        );
         await settle(tester);
         expect(
           tester.widget<TextField>(find.byType(TextField)).controller!.text,
@@ -234,7 +242,9 @@ void main() {
         await reportListReady(tester);
         expect(find.text('Bache en avenida'), findsOneWidget);
         expect(find.text('Basura de demostración'), findsNothing);
-        await tester.tap(find.byIcon(Icons.bar_chart));
+        await tester.tap(
+          find.widgetWithText(NavigationDestination, 'Estadísticas'),
+        );
         await settle(tester);
         await reveal(tester, find.byKey(const ValueKey('local:Total')));
         metric('local', 'Total', '0');

@@ -54,6 +54,7 @@ class FirebaseGoogleGateway implements IdentityGateway {
     return VerifiedIdentity(
       uid: user.uid,
       email: user.email,
+      displayName: user.displayName,
       photoUrl: user.photoURL,
       isAdmin: admin,
     );

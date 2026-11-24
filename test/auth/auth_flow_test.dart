@@ -12,7 +12,7 @@ import '../support/composer_fakes.dart';
 
 void main() {
   testWidgets(
-    'protected action resumes after Google and a chosen name; logout returns to visitor',
+    'profile access completes Google and chooses a public name; logout returns to visitor',
     (tester) async {
       final db = AppDatabase.forTesting(NativeDatabase.memory());
       final gateway = TestIdentityGateway();
@@ -33,7 +33,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Continuar con Google'));
         await tester.pumpAndSettle();
         expect(find.text('Iniciar sesión'), findsOneWidget);
         await tester.tap(find.text('Continuar con Google'));
@@ -46,20 +48,20 @@ void main() {
               .text,
           isEmpty,
         );
-        await tester.tap(find.text('Completar más tarde y explorar'));
-        await tester.pumpAndSettle();
-        expect(find.text('Mapa de El Alto'), findsOneWidget);
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
-        await tester.pumpAndSettle();
-        expect(find.text('Elige tu nombre público'), findsOneWidget);
         await tester.enterText(find.byType(TextFormField), 'Vecina del barrio');
         await tester.tap(find.text('Guardar nombre'));
         await tester.pumpAndSettle();
-        expect(find.text('Crear reporte'), findsOneWidget);
-        expect(find.text('Título'), findsOneWidget);
         expect(gateway.signIns, 1);
-        await tester.tap(find.byIcon(Icons.person_outline));
-        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Mis reportes'),
+          160,
+          scrollable: find
+              .descendant(
+                of: find.byType(ListView),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
         expect(find.text('Mis reportes'), findsOneWidget);
         expect(find.text('Administrador local'), findsNothing);
         await tester.ensureVisible(find.text('Cerrar sesión'));
@@ -104,7 +106,9 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byIcon(Icons.add_circle_outline));
+        await tester.tap(find.widgetWithText(NavigationDestination, 'Perfil'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Continuar con Google'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Continuar con Google'));
         await tester.pumpAndSettle();

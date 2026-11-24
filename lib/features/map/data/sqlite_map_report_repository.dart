@@ -11,7 +11,7 @@ class SqliteMapReportRepository implements MapReportRepository {
   @override
   Stream<List<MapReport>> watchMarkers({
     ReportFilter filter = const ReportFilter(),
-  }) => db.watchQuery({'reports', 'categories'}, () async {
+  }) => db.watchQuery({'reports', 'categories', 'report_images'}, () async {
     final rows = await ReportQueryDao(db).rows(filter);
     return List.unmodifiable(
       rows.map(
@@ -26,6 +26,12 @@ class SqliteMapReportRepository implements MapReportRepository {
           ),
           status: statusFromSql(row.read<String>('status')),
           isDemo: row.read<int>('is_demo') == 1,
+          createdAt: DateTime.parse(row.read<String>('created_at')),
+          resolvedAt: DateTime.tryParse(
+            row.readNullable<String>('resolved_at') ?? '',
+          ),
+          photoPath: row.readNullable<String>('photo_path'),
+          address: row.readNullable<String>('address_label'),
         ),
       ),
     );
